@@ -9,24 +9,23 @@ namespace GrpcServer.Services
     public class GreeterService : Greeter.GreeterBase
     {
         private readonly ILogger<GreeterService> _logger;
+        private readonly TalkzContext _DBContext;
         public GreeterService(ILogger<GreeterService> logger, TalkzContext DBContext)
         {
             _logger = logger;
             _DBContext = DBContext;
         }
 
-        private readonly TalkzContext _DBContext;
-
         public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
         {
-            ReplyDTO? test = _DBContext.Usercredentials.Select(s => new ReplyDTO
-            {
-                UserId = s.UserId
-            }).FirstOrDefault();
+            var test = _DBContext.Usercredentials.FirstOrDefault(s => s.UserId == 3)!;
             return Task.FromResult(new HelloReply
             {
-                Message = $"Hello {request.Name} and {test}"
+                Message = $"Hello {test.Username}"
             });
         }
+        //https://www.webnethelper.com/2021/06/grpc-services-using-net-5-using-entity.html
+
+
     }
 }
