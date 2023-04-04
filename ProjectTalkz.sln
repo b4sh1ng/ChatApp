@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcServer", "GrpcServer\Gr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TalkzClient", "TalkzClient\TalkzClient.csproj", "{A90DCAA1-2B3C-4E7F-958D-19837B609879}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatClient", "ChatClient\ChatClient.csproj", "{D34048FA-5715-4488-A2DC-1BB61B6DB623}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,10 +23,10 @@ Global
 		{A90DCAA1-2B3C-4E7F-958D-19837B609879}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A90DCAA1-2B3C-4E7F-958D-19837B609879}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A90DCAA1-2B3C-4E7F-958D-19837B609879}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F215891-A57C-47CF-9BDC-5EE1DD73C4D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F215891-A57C-47CF-9BDC-5EE1DD73C4D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F215891-A57C-47CF-9BDC-5EE1DD73C4D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F215891-A57C-47CF-9BDC-5EE1DD73C4D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D34048FA-5715-4488-A2DC-1BB61B6DB623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D34048FA-5715-4488-A2DC-1BB61B6DB623}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D34048FA-5715-4488-A2DC-1BB61B6DB623}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D34048FA-5715-4488-A2DC-1BB61B6DB623}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

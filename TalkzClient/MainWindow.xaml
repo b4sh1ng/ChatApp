@@ -13,8 +13,35 @@
 
     <Grid>
         <StackPanel>
-            <TextBlock Text="{Binding Answer}" Width="80"/>
-            <Button Height="30" Width="80" Content="Anfrage" Command="{Binding AnfrageCommand}"/>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Output: "/>
+                <ListView ItemsSource="{Binding Messages}" Width="745" Height="300">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Username}" FontWeight="Bold" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding Message}" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding Time}" FontStyle="Italic" Margin="0,0,5,0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+            
+
+            <Button Height="30" Width="80" Content="Login" Command="{Binding AnfrageCommand}"/>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Deine ID: "/>
+                <TextBox Text="{Binding Clientid}" Width="20" Height="20"/>
+                <Label Content="Fremde ID: "/>
+                <TextBox Text="{Binding Xclientid}" Width="20" Height="20"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Input: "/>
+                <TextBox Text="{Binding Data}" Width="700"/>
+                <Button Width="45" Content="Senden" Command="{Binding SendenCommand}"/>
+            </StackPanel>
+
         </StackPanel>
 
     </Grid>
