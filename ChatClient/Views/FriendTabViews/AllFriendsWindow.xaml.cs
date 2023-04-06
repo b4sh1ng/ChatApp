@@ -1,5 +1,4 @@
-﻿using ChatClient.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,16 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ChatClient.Views
+namespace ChatClient.Views.FriendTabViews
 {
     /// <summary>
-    /// Interaktionslogik für ChatWindow.xaml
+    /// Interaktionslogik für AllFriendsWindow.xaml
     /// </summary>
-    public partial class ChatWindow : UserControl
+    public partial class AllFriendsWindow : UserControl
     {
-        public ChatWindow()
+        public AllFriendsWindow()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
     }
 }

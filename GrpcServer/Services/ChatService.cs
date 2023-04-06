@@ -11,7 +11,7 @@ namespace GrpcServer.Services
         private static Dictionary<int, ServerCallContext> Subscribers = new();
         private readonly ILogger<ChatService> _logger;
         private readonly TalkzContext _DBContext;
-        private static Msg message;
+        private static Msg? message;
         public ChatService(ILogger<ChatService> logger, TalkzContext DBContext)
         {
             _logger = logger;

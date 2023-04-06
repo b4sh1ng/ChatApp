@@ -13,6 +13,10 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400*" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition />
@@ -22,20 +26,32 @@
             <Label
                 Margin="5,0,0,0"
                 VerticalContentAlignment="Center"
-                Content="{Binding Name}"
+                Content="{Binding ChatName}"
                 FontSize="20"
                 FontWeight="Bold" />
             <Border
                 Width="10"
                 Height="10"
-                Background="{Binding CurrentStatus}"
+                Background="Green"
                 CornerRadius="7" />
         </StackPanel>
+        <Border
+            Grid.Row="0"
+            BorderBrush="Gray"
+            BorderThickness="0,0,0,1" />
         <ListView
             Grid.Row="1"
-            Margin="8,0,0,0"
             Background="Transparent"
             BorderThickness="0"
-            ItemContainerStyle="{StaticResource ChatContent}" />
+            ItemContainerStyle="{StaticResource ChatContent}"
+            ItemsSource="{Binding Messages}" />
+        <Border
+            Grid.Row="2"
+            BorderBrush="Gray"
+            BorderThickness="0,1,0,0" />
+        <TextBox
+            Grid.Row="2"
+            Margin="7,7,7,7"
+            Style="{StaticResource ChatInputBox}" />
     </Grid>
 </UserControl>

@@ -3,7 +3,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewmodels="clr-namespace:ChatClient.ViewModels"
+    xmlns:viewmodelsFriends="clr-namespace:ChatClient.ViewModels.FriendsTabViewModels"
     xmlns:views="clr-namespace:ChatClient.Views"
+    xmlns:viewFriends="clr-namespace:ChatClient.Views.FriendTabViews"
     StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
@@ -13,9 +15,11 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <!--  Theme setting  -->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Mauve.xaml" />
-
                 <ResourceDictionary Source="./Styles/ChatCard.xaml" />
                 <ResourceDictionary Source="./Styles/ChatContent.xaml" />
+                <ResourceDictionary Source="./Styles/FriendsNavButton.xaml" />
+                <ResourceDictionary Source="./Styles/FriendsButtons.xaml" />
+                <ResourceDictionary Source="./Styles/ChatInputBox.xaml" />
                 <ResourceDictionary Source="./Styles/StylishScrollbar.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
@@ -27,6 +31,18 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type viewmodels:FriendsView}">
                 <views:FriendsWindow />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewmodelsFriends:AddFriendsView}">
+                <viewFriends:AddFriendsWindow />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewmodelsFriends:AllFriendsView}">
+                <viewFriends:AllFriendsWindow />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewmodelsFriends:OnlineFriendsView}">
+                <viewFriends:OnlineFriendsWindow />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewmodelsFriends:RequestsFriendsView}">
+                <viewFriends:RequestsFriendsWindow />
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
