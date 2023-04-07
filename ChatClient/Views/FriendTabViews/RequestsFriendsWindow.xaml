@@ -11,7 +11,15 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid >
-        <Label Content="Requests" FontSize="14" FontWeight="Bold"/>
+    <Grid>
+        <StackPanel>
+            <Label
+                Margin="15,0,0,0"
+                Content="Requests ~ 1"
+                FontSize="14"
+                FontWeight="Bold" />
+            <ListView ItemContainerStyle="{StaticResource FriendsRequestCard}" ItemsSource="{Binding FriendList}" />
+        </StackPanel>
+
     </Grid>
 </UserControl>

@@ -15,6 +15,8 @@ namespace ChatClient.ViewModels
         [ObservableProperty]
         private string? chatName;
         public ObservableCollection<MessageModel>? Messages { get; set; }
+        [ObservableProperty]
+        private string? imageSource;
 
         public ChatView()
         {
@@ -27,6 +29,7 @@ namespace ChatClient.ViewModels
                 Messages = new ObservableCollection<MessageModel>();
                 ChatName = "@" + chatModel!.ChatName;
                 Messages = chatModel.Messages;
+                //ImageSource = chatModel.ImageSource;
             }
 
         }

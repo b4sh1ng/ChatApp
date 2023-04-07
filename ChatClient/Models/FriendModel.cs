@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace ChatClient.Models
 {
-    internal class FriendModel
+    public class FriendModel
     {
+        public int FriendId { get; set; }
+        public string? Username { get; set; }
+        public int UsernameId { get; set; }
+        public string? ImageSource { get; set; }
+        public bool IsFriend { get; set; }
+        public byte CurrentStatus { get; set; }
     }
 }

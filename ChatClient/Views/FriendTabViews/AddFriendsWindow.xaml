@@ -11,7 +11,11 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid >
-        <Label Content="Add Friends" FontSize="14" FontWeight="Bold"/>
+    <Grid>
+        <Label
+            Content="Add Friends"
+            FontSize="14"
+            FontWeight="Bold"
+            Margin="15,0,0,0"/>
     </Grid>
 </UserControl>

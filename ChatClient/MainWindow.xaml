@@ -19,6 +19,7 @@
         <self:MainView />
     </Window.DataContext>
 
+
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands>
             <Button>
@@ -31,7 +32,7 @@
     </mah:MetroWindow.LeftWindowCommands>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="240" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
@@ -42,18 +43,17 @@
                 <RowDefinition Height="50" />
                 <RowDefinition Height="25" />
                 <RowDefinition />
-                <RowDefinition Height="50" />
+                <RowDefinition Height="60" />
             </Grid.RowDefinitions>
-            <StackPanel
-                Grid.Row="0"                
-                Background="#222222">
+            <StackPanel Grid.Row="0" Background="#222222">
                 <Button
-                    Command="{Binding FriendsViewCommand}"
-                    VerticalAlignment="Center"
                     Height="40"
                     Margin="8,4,8,4"
-                    Content="Friends"   
-                    Style="{StaticResource FriendsNavButton}"/>
+                    VerticalAlignment="Center"
+                    Command="{Binding ChangeViewCommand}"
+                    CommandParameter="friends"
+                    Content="Friends"
+                    Style="{StaticResource FriendsNavButton}" />
             </StackPanel>
             <StackPanel
                 Grid.Row="1"
@@ -74,8 +74,65 @@
 
             <StackPanel
                 Grid.Row="3"
-                Background="#1b1b1b"
-                Orientation="Horizontal" />
+                Background="#121212"
+                Orientation="Horizontal">
+                <Button
+                    Width="130"
+                    Height="50"
+                    Margin="10,0,0,0"
+                    Style="{StaticResource FriendsButton}">
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <Ellipse
+                            Width="40"
+                            Height="40"
+                            Margin="-30,0,0,0">
+                            <Ellipse.Fill>
+                                <ImageBrush ImageSource="{Binding ImageSource, Converter={StaticResource Base64ImageConverter}}" />
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <Border
+                            Width="11"
+                            Height="11"
+                            Margin="-11,25.5,0,0"
+                            Background="#181818"
+                            CornerRadius="5" />
+                        <Border
+                            Width="10"
+                            Height="10"
+                            Margin="-10,25,0,0"
+                            Background="Green"
+                            CornerRadius="7" />
+                        <StackPanel>
+                            <Label
+                                Content="{Binding Username}"
+                                FontSize="14"
+                                FontWeight="Bold" />
+                            <Label
+                                Margin="0,-10,0,0"
+                                Content="{Binding UsernameId}"
+                                FontSize="12"
+                                Foreground="DarkGray" />
+                        </StackPanel>
+                    </StackPanel>
+                </Button>
+                <DockPanel Width="100" HorizontalAlignment="Right">
+                    <Button
+                        Command="{Binding ChangeViewCommand}"
+                        CommandParameter="settings"
+                        Width="30"
+                        Height="30"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Right"
+                        Style="{StaticResource FriendsButton}">
+                        <iconPacks:PackIconFontAwesome
+                            Width="18"
+                            Height="18"
+                            Margin="0,3,0,0"
+                            VerticalAlignment="Center"
+                            Kind="CogSolid" />
+                    </Button>
+                </DockPanel>
+            </StackPanel>
         </Grid>
     </Grid>
 </mah:MetroWindow>
