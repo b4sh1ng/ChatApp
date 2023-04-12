@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServer";
+
+package chat;
+
+service Chat {
+	rpc Subscribe(Request) returns (stream SubscriberResponse);
+	rpc Unsubscribe(Request) returns (SubscriberResponse);
+	rpc GetUserData(Login) returns (UserDataResponse);
+	rpc GetUserChatAndFriends(Request) returns (stream GetChatFriendDataResponse);
+	rpc PostMessage(Msg) returns (Empty);
+}
+
+message Empty{
+
+}
+
+message Request{
+	int32 id = 1;
+}
+
+message SubscriberResponse {
+	string data = 1;
+	int32 fromId = 2;
+}
+
+message Login {
+	string loginMail = 1;
+	string password = 2;
+}
+
+message UserDataResponse{
+	int32 myUserid = 1;
+	string myUsername = 2;
+	int32 myUsernameId = 3;
+	string myProfileImgB64 = 4;
+}
+
+message GetChatFriendDataResponse{
+	optional FriendData friendData = 1;
+	optional ChatData chatData = 2;
+}
+
+message FriendData{
+	int32 friendId = 1;
+	bool isFriend = 2;
+}
+
+message ChatData{
+	int32 chatId = 1;
+	bool isListed = 2;
+}
+
+message Msg {
+	int32 fromId = 1;
+	int32 toId = 2;
+	string text = 3;
+}

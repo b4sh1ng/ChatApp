@@ -1,0 +1,93 @@
+﻿<UserControl
+    x:Class="ChatClient.Views.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ChatClient.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:self="clr-namespace:ChatClient.ViewModels"
+    d:DataContext="{d:DesignInstance Type=self:SettingsView,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <Grid>
+
+        <Border
+            Width="Auto"
+            Height="Auto"
+            MinWidth="300"
+            MinHeight="250"
+            Margin="25"
+            Background="#171717"
+            CornerRadius="5">
+            <DockPanel LastChildFill="false">
+                <Label
+                    Margin="10,0,0,0"
+                    Content="Settings"
+                    FontSize="20"
+                    FontWeight="Bold" />
+                <Border
+                    Width="35"
+                    Height="35"
+                    Background="CornflowerBlue"
+                    CornerRadius="30" />
+                <!--<StackPanel>
+                    <Label
+                        Margin="10,0,0,0"
+                        Content="Settings"
+                        FontSize="20"
+                        FontWeight="Bold" />
+                    <StackPanel
+                        Margin="20,20,0,0"
+                        DockPanel.Dock="Left"
+                        Orientation="Horizontal">
+                        <Border
+                            Width="35"
+                            Height="35"
+                            Background="CornflowerBlue"
+                            CornerRadius="30" />
+                        <StackPanel>
+                            <TextBox
+                                Background="Transparent"
+                                BorderThickness="0"
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Text="Username" />
+                            <TextBox
+                                Margin="0,-10,0,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Text="#0000" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="20,20,0,0" Orientation="Horizontal">
+                        <Label Content="Account creation date:" />
+                        <Label Content="01.01.1970" FontWeight="Bold" />
+                    </StackPanel>
+                    <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
+                        <Label Content="E-Mail:" />
+                        <Label Content="mockup@email.com" FontWeight="Bold" />
+                    </StackPanel>
+                    <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
+                        <Label Content="E-Mail:" />
+                        <Label Content="mockup@email.com" FontWeight="Bold" />
+                    </StackPanel>
+                    <Button
+                        Width="80"
+                        Height="30"
+                        Margin="0,0,0,10"
+                        Content="Logout"
+                        DockPanel.Dock="Bottom"
+                        Style="{StaticResource FriendsButton}" />
+
+                </StackPanel>-->
+
+            </DockPanel>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="0" />
+            </Border.Effect>
+        </Border>
+
+    </Grid>
+</UserControl>
