@@ -15,19 +15,35 @@ public partial class TalkzContext : DbContext
     {
     }
 
+    public virtual DbSet<Chat> Chats { get; set; }
+
     public virtual DbSet<Friendlist> Friendlists { get; set; }
 
-    public virtual DbSet<Userchat> Userchats { get; set; }
+    public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<Usercredential> Usercredentials { get; set; }
 
-    public virtual DbSet<Usermessage> Usermessages { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    { }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Chat>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.ChatId }).HasName("PRIMARY");
+
+            entity.ToTable("chats");
+
+            entity.Property(e => e.UserId)
+                .HasColumnType("int(11)")
+                .HasColumnName("userId");
+            entity.Property(e => e.ChatId)
+                .HasColumnType("int(11)")
+                .HasColumnName("chatId");
+            entity.Property(e => e.IsListed)
+                .HasColumnType("tinyint(4)")
+                .HasColumnName("isListed");
+        });
+
         modelBuilder.Entity<Friendlist>(entity =>
         {
             entity.HasKey(e => new { e.UserId1, e.UserId2 }).HasName("PRIMARY");
@@ -45,18 +61,28 @@ public partial class TalkzContext : DbContext
                 .HasColumnName("isFriend");
         });
 
-        modelBuilder.Entity<Userchat>(entity =>
+        modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.ChatId }).HasName("PRIMARY");
+            entity
+                .HasNoKey()
+                .ToTable("messages");
 
-            entity.ToTable("userchats");
-
-            entity.Property(e => e.UserId)
-                .HasColumnType("int(11)")
-                .HasColumnName("userId");
             entity.Property(e => e.ChatId)
                 .HasColumnType("int(11)")
                 .HasColumnName("chatId");
+            entity.Property(e => e.FromId)
+                .HasColumnType("int(11)")
+                .HasColumnName("fromId");
+            entity.Property(e => e.IsEdited)
+                .HasDefaultValueSql("'NULL'")
+                .HasColumnName("isEdited");
+            entity.Property(e => e.IsRead)
+                .HasDefaultValueSql("'NULL'")
+                .HasColumnName("isRead");
+            entity.Property(e => e.Message1).HasColumnName("message");
+            entity.Property(e => e.MessageTimestamp)
+                .HasColumnType("bigint(20)")
+                .HasColumnName("messageTimestamp");
         });
 
         modelBuilder.Entity<Usercredential>(entity =>
@@ -71,39 +97,15 @@ public partial class TalkzContext : DbContext
             entity.Property(e => e.Password)
                 .HasMaxLength(255)
                 .HasColumnName("password");
-            entity.Property(e => e.UserPicLink)
-                .HasMaxLength(255)
+            entity.Property(e => e.ProfileImgB64)
                 .HasDefaultValueSql("'NULL'")
-                .HasColumnName("userPicLink");
+                .HasColumnName("profileImgB64");
             entity.Property(e => e.Username)
                 .HasMaxLength(12)
                 .HasColumnName("username");
             entity.Property(e => e.UsernameId)
                 .HasColumnType("int(11)")
                 .HasColumnName("usernameId");
-        });
-
-        modelBuilder.Entity<Usermessage>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("usermessages");
-
-            entity.Property(e => e.ChatId)
-                .HasColumnType("int(11)")
-                .HasColumnName("chatId");
-            entity.Property(e => e.IsEdited)
-                .HasDefaultValueSql("'NULL'")
-                .HasColumnName("isEdited");
-            entity.Property(e => e.IsRead)
-                .HasDefaultValueSql("'NULL'")
-                .HasColumnName("isRead");
-            entity.Property(e => e.Message)
-                .HasColumnType("text")
-                .HasColumnName("message");
-            entity.Property(e => e.MessageTimestamp)
-                .HasColumnType("bigint(20)")
-                .HasColumnName("messageTimestamp");
         });
 
         OnModelCreatingPartial(modelBuilder);

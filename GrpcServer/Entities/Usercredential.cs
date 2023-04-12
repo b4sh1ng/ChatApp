@@ -13,5 +13,5 @@ public partial class Usercredential
 
     public string Password { get; set; } = null!;
 
-    public string? UserPicLink { get; set; }
+    public string? ProfileImgB64 { get; set; }
 }
