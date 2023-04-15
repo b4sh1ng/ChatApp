@@ -12,7 +12,7 @@ var client = new Chat.ChatClient(channel);
 
 var response = client.GetUserData(new Login
 {
-    LoginMail = "Bash",
+    LoginMail = "Preacher",
     Password = "test"
 });
 id = response.MyUserid;
@@ -41,4 +41,27 @@ await foreach (var friend in friendList.ResponseStream.ReadAllAsync())
         Console.WriteLine($"User {name} hat eine Freundesanfrage mit der UserId: {friend.FriendId} und Bild: {friend.FriendImgB64}");
     }
 }
+
+var sub = client.Subscribe(new Request { Id = id });
+
+await client.PostMessageAsync(new Msg { Text = "Testtext", ChatId = 1, FromId = id });
+//await foreach (var s in sub.ResponseStream.ReadAllAsync())
+//{
+//    if (s.MessageType == 1)
+//    {
+//        Console.WriteLine($"Nachricht erhalten!\nInhalt: {s.NewMessage.Text}");
+//    }
+//}
+using (var call = sub)
+{
+    var responseReaderTask = Task.Run(async () =>
+    {
+        while (await call.ResponseStream.MoveNext())
+        {
+            Console.WriteLine($"Text erhalten: {call.ResponseStream.Current}");
+        }
+    });
+    await responseReaderTask;
+}
+Console.WriteLine("lo");
 Console.ReadKey();

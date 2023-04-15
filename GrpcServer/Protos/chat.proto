@@ -6,7 +6,7 @@ package chat;
 
 service Chat {
 	rpc Subscribe(Request) returns (stream SubscriberResponse);
-	rpc Unsubscribe(Request) returns (SubscriberResponse);
+	rpc Unsubscribe(Request) returns (Empty);
 	rpc GetUserData(Login) returns (UserDataResponse);
 	rpc GetUserFriends(Request) returns (stream GetFriendDataResponse);
 	rpc GetUserChats(Request) returns (stream GetChatDataResponse);
@@ -38,7 +38,8 @@ message NewChat {
 message NewMessage {
 	int32 toChatId = 1;
 	int32 fromId = 2;
-	string text = 3;
+	int32 toId = 3;
+	string text = 4;
 }
 
 message NewRequest {
@@ -79,7 +80,8 @@ message GetFriendDataResponse {
 }
 
 message Msg {
-	int32 fromId = 1;
-	int32 toId = 2;
+	int32 chatId = 1;
+	int32 fromId = 2;
 	string text = 3;
+	
 }

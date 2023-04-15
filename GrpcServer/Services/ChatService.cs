@@ -3,71 +3,73 @@ using GrpcServer;
 using GrpcServer.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks.Dataflow;
 
 namespace GrpcServer.Services
 {
     public class ChatService : Chat.ChatBase
     {
-        private static Dictionary<int, ServerCallContext> Subscribers = new();
-        private readonly ILogger<ChatService> _logger;
-        private readonly TalkzContext _dbcontext;
-        private static Msg? message;
+        private readonly ILogger<ChatService> logger;
+        private readonly TalkzContext dbcontext;
+        private static Dictionary<int, IServerStreamWriter<SubscriberResponse>> subscribers = new();
+        private static readonly BufferBlock<SubscriberResponse> buffer = new();
+
         public ChatService(ILogger<ChatService> logger, TalkzContext DBContext)
         {
-            _logger = logger;
-            _dbcontext = DBContext!;
+            this.logger = logger;
+            dbcontext = DBContext!;
         }
-
-        //public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
-        //{
-        //    //KeyValuePair<int, ServerCallContext> foundPair = Subscribers.FirstOrDefault(x => x.Value == context);
-        //    ServerCallContext isIdHere = Subscribers.FirstOrDefault(x => x.Key == request.Id).Value;
-        //    if (isIdHere is not null)
-        //    {
-        //        _logger.LogInformation($"Subscribe Anfrage von {request.Id} abgelehnt, da schon vorhanden.");
-        //        return;
-        //    }
-        //    _logger.LogInformation($"Subscribe Anfrage erhalten von: {request.Id}");
-        //    Subscribers.Add(request.Id, context);
-        //    await responseStream.WriteAsync(new SubscriberResponse { Data = $"Connected to Server!" });
-        //    while (!context.CancellationToken.IsCancellationRequested)
-        //    {
-        //        if (message == null) continue;
-        //        if (message.ToId == request.Id)
-        //        {
-        //            await responseStream.WriteAsync(new SubscriberResponse { Data = message.Text, FromId = message.FromId });
-        //            message = null;
-        //        }
-        //        await Task.Delay(1);
-        //    }
-        //}
         public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
         {
-            ServerCallContext isIdHere = Subscribers.FirstOrDefault(x => x.Key == request.Id).Value;
-            if (isIdHere is not null)
+            logger.LogInformation($"Subscribe Anfrage erhalten von: {request.Id}");
+            subscribers[request.Id] = responseStream;
+            while (subscribers.ContainsKey(request.Id))
             {
-                _logger.LogInformation($"Subscribe Anfrage von {request.Id} abgelehnt, da schon vorhanden.");
-                return;
+                var message = await buffer.ReceiveAsync();
+                foreach (var serverStreamWriter in subscribers.Values)
+                {
+                    if (message.NewMessage.ToId == request.Id)
+                    {
+                        await serverStreamWriter.WriteAsync(message);
+                    }
+                }
             }
-            _logger.LogInformation($"Subscribe Anfrage erhalten von: {request.Id}");
-            Subscribers.Add(request.Id, context);
-            while (!context.CancellationToken.IsCancellationRequested)
-            {
-
-            }
-
+        }
+        public override Task<SubscriberResponse> Unsubscribe(Request request, ServerCallContext context)
+        {
+            return base.Unsubscribe(request, context);
         }
         public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
         {
-            _logger.LogInformation($"Nachricht von {request.FromId} erhalten für: {request.ToId}\n Inhalt: {request.Text}");
-            message = request;
+            logger.LogInformation($"Nachricht für Chat {request.ChatId} mit Inhalt:\n\"{request.Text}\"");
+            var query = dbcontext.Chats
+                .Where(c => c.ChatId == request.ChatId)
+                .Select(c => c.UserId);
+
+            foreach (var userId in query)
+            {
+                if (subscribers.ContainsKey(userId))
+                {
+                    buffer.Post(new SubscriberResponse()
+                    {
+                        MessageType = 1,
+                        NewMessage = new NewMessage()
+                        {
+                            ToChatId = request.ChatId,
+                            FromId = request.FromId,
+                            ToId = userId,
+                            Text = request.Text,                            
+                        }
+                    });
+                }
+            }
+            // ...Write Data to DB
             return Task.FromResult(new Empty());
         }
-
         public override async Task<UserDataResponse> GetUserData(Login request, ServerCallContext context)
         {
             // Später Login Kontrolle + JWT Token hinzufügen
-            var DbRequest = _dbcontext.Usercredentials.FirstOrDefault(x => x.Username == request.LoginMail);
+            var DbRequest = dbcontext.Usercredentials.FirstOrDefault(x => x.Username == request.LoginMail);
             return await Task.FromResult(new UserDataResponse
             {
                 MyUserid = DbRequest!.UserId,
@@ -78,11 +80,11 @@ namespace GrpcServer.Services
         }
         public override async Task GetUserChats(Request request, IServerStreamWriter<GetChatDataResponse> responseStream, ServerCallContext context)
         {
-            var query = from chats in _dbcontext.Chats
-                        join userdata in _dbcontext.Usercredentials
+            var query = from chats in dbcontext.Chats
+                        join userdata in dbcontext.Usercredentials
                         on chats.UserId equals userdata.UserId
                         where chats.UserId != request.Id
-                        join chatdata in _dbcontext.Chats
+                        join chatdata in dbcontext.Chats
                         on chats.ChatId equals chatdata.ChatId
                         where chatdata.UserId == request.Id
                         select new
@@ -103,11 +105,10 @@ namespace GrpcServer.Services
                     ChatImgB64 = chats.B64Img,
                 });
             }
-
         }
         public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
         {
-            var DbRequest = await _dbcontext.Friendlists
+            var DbRequest = await dbcontext.Friendlists
                 .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
                 .ToListAsync();
 
@@ -120,7 +121,7 @@ namespace GrpcServer.Services
                 else
                     friendId = friends.UserId1;
 
-                var FriendImgRequest = await _dbcontext.Usercredentials.Where(x => x.UserId == friendId).SingleAsync();
+                var FriendImgRequest = await dbcontext.Usercredentials.Where(x => x.UserId == friendId).SingleAsync();
                 await responseStream.WriteAsync(new GetFriendDataResponse
                 {
                     FriendId = friendId,
@@ -128,9 +129,6 @@ namespace GrpcServer.Services
                     FriendImgB64 = FriendImgRequest.ProfileImgB64,
                 });
             }
-
         }
-
-
     }
 }
