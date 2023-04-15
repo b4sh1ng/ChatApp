@@ -5,12 +5,12 @@ option csharp_namespace = "GrpcServer";
 package chat;
 
 service Chat {
-	rpc Subscribe(Request) returns (stream SubscriberResponse);
-	rpc Unsubscribe(Request) returns (Empty);
+	rpc Subscribe(Request) returns (stream SubscriberResponse); //added
+	rpc Unsubscribe(Request) returns (Empty); //added
 	rpc GetUserData(Login) returns (UserDataResponse);
-	rpc GetUserFriends(Request) returns (stream GetFriendDataResponse);
-	rpc GetUserChats(Request) returns (stream GetChatDataResponse);
-	rpc PostMessage(Msg) returns (Empty);
+	rpc GetUserFriends(Request) returns (stream GetFriendDataResponse); //added
+	rpc GetUserChats(Request) returns (stream GetChatDataResponse); //added
+	rpc PostMessage(Msg) returns (Empty); //added
 }
 
 message Empty {
@@ -82,6 +82,5 @@ message GetFriendDataResponse {
 message Msg {
 	int32 chatId = 1;
 	int32 fromId = 2;
-	string text = 3;
-	
+	string text = 3;	
 }

@@ -35,9 +35,10 @@ namespace GrpcServer.Services
                 }
             }
         }
-        public override Task<SubscriberResponse> Unsubscribe(Request request, ServerCallContext context)
+        public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
         {
-            return base.Unsubscribe(request, context);
+            subscribers.Remove(request.Id);
+            return Task.FromResult(new Empty());
         }
         public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
         {
@@ -52,7 +53,7 @@ namespace GrpcServer.Services
                 {
                     buffer.Post(new SubscriberResponse()
                     {
-                        MessageType = 1,
+                        MessageType = 2,
                         NewMessage = new NewMessage()
                         {
                             ToChatId = request.ChatId,

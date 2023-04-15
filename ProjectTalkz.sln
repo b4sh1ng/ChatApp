@@ -5,7 +5,9 @@ VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcServer", "GrpcServer\GrpcServer.csproj", "{6FB5EA58-617C-48F6-938F-5011BADDD2AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcTester", "GrpcTester\GrpcTester.csproj", "{F3AAF558-3775-4D90-96AF-7C0CF6D72A15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcTester", "GrpcTester\GrpcTester.csproj", "{F3AAF558-3775-4D90-96AF-7C0CF6D72A15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPC_Talkz", "gRPC_Talkz\gRPC_Talkz.csproj", "{FF376C6B-90B8-4FCB-A8FC-D26C60C72E61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{F3AAF558-3775-4D90-96AF-7C0CF6D72A15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3AAF558-3775-4D90-96AF-7C0CF6D72A15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3AAF558-3775-4D90-96AF-7C0CF6D72A15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF376C6B-90B8-4FCB-A8FC-D26C60C72E61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF376C6B-90B8-4FCB-A8FC-D26C60C72E61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF376C6B-90B8-4FCB-A8FC-D26C60C72E61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF376C6B-90B8-4FCB-A8FC-D26C60C72E61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
