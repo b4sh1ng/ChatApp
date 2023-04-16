@@ -46,22 +46,22 @@ public partial class MainView : BaseView
         //Messages = new ObservableCollection<MessageModel>();
         //Chats = new ObservableCollection<ChatModel>();
         GetUserData(client).Wait();
-        var sub = client.Subscribe(new Request { Id = UserId });
+        //var sub = client.Subscribe(new Request { Id = UserId });
         Task.Run(async () => (            
             Chats = await GetUserChats(client)
             )       
         );
-        using (sub)
-        {
-            var responseReaderTask = Task.Run(async () =>
-            {
-                while (await sub.ResponseStream.MoveNext())
-                {
-                    ProcessResponseMessage(sub.ResponseStream.Current);
-                }
-            });
-            await responseReaderTask;
-        }
+        //using (sub)
+        //{
+        //    var responseReaderTask = Task.Run(async () =>
+        //    {
+        //        while (await sub.ResponseStream.MoveNext())
+        //        {
+        //            ProcessResponseMessage(sub.ResponseStream.Current);
+        //        }
+        //    });
+        //    await responseReaderTask;
+        //}
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
