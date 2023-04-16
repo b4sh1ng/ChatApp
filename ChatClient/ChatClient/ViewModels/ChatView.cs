@@ -37,7 +37,7 @@ namespace ChatClient.ViewModels
             Client.PostMessage(new Msg
             {
                 ChatId = chatId,
-                FromId = 1,
+                FromId = userId,
                 Text = Message,
             });
             Message = "";

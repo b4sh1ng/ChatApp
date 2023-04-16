@@ -14,10 +14,10 @@ namespace ChatClient.ViewModels;
 
 public partial class MainView : BaseView
 {
-    public ObservableCollection<MessageModel>? Messages { get; set; }
+    public ObservableCollection<MessageModel>? Messages { get; set; } = new ObservableCollection<MessageModel>();
     public ObservableCollection<ChatModel>? Chats { get; set; } = new ObservableCollection<ChatModel>();
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
-    public Chat.ChatClient Client { get; } = new Chat.ChatClient(Channel);
+    public Chat.ChatClient client { get; } = new Chat.ChatClient(Channel);
     public ObservableCollection<FriendModel>? FriendList;
 
     [ObservableProperty]
@@ -42,18 +42,31 @@ public partial class MainView : BaseView
     {        
         SelectedView = new FriendsView();
         FriendsIsSelected = true;
-        Messages = new ObservableCollection<MessageModel>();
-        Chats = new ObservableCollection<ChatModel>();
-        GetUserData(Client).Wait();
+       
+        //Messages = new ObservableCollection<MessageModel>();
+        //Chats = new ObservableCollection<ChatModel>();
+        GetUserData(client).Wait();
+        var sub = client.Subscribe(new Request { Id = UserId });
         Task.Run(async () => (            
-            Chats = await GetUserChats(Client)
+            Chats = await GetUserChats(client)
             )       
         );
+        using (sub)
+        {
+            var responseReaderTask = Task.Run(async () =>
+            {
+                while (await sub.ResponseStream.MoveNext())
+                {
+                    ProcessResponseMessage(sub.ResponseStream.Current);
+                }
+            });
+            await responseReaderTask;
+        }
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
         FriendsIsSelected = false;
-        SelectedView = new ChatView(ref value, Client);
+        SelectedView = new ChatView(ref value, client);
     }
 
     [RelayCommand]
