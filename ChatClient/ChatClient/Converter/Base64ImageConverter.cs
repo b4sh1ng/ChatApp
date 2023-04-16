@@ -23,7 +23,6 @@ namespace ChatClient.Converter
             bi.BeginInit();
             bi.StreamSource = new MemoryStream(System.Convert.FromBase64String(s));
             bi.EndInit();
-
             return bi;
         }
 

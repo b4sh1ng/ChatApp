@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcServer", "GrpcServer\Gr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcTester", "GrpcTester\GrpcTester.csproj", "{F3AAF558-3775-4D90-96AF-7C0CF6D72A15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPC_Talkz", "gRPC_Talkz\gRPC_Talkz.csproj", "{FF376C6B-90B8-4FCB-A8FC-D26C60C72E61}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPC_Proto", "gRPC_Talkz\gRPC_Proto.csproj", "{FF376C6B-90B8-4FCB-A8FC-D26C60C72E61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

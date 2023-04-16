@@ -21,9 +21,9 @@
                                 Foreground="White"
                                 Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextWrapping="Wrap">
-                                <!--<TextBox.InputBindings>
+                                <TextBox.InputBindings>
                                     <KeyBinding Key="Return" Command="{Binding SendCommand}" />
-                                </TextBox.InputBindings>-->
+                                </TextBox.InputBindings>
                             </TextBox>
                             <TextBlock
                                 Margin="15,-2,0,0"
@@ -31,7 +31,7 @@
                                 VerticalAlignment="Center"
                                 Foreground="DarkGray"
                                 IsHitTestVisible="False"
-                                Text="@Message">
+                                Text="{Binding MessageTo}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -42,8 +42,6 @@
                                         </Style.Triggers>
                                     </Style>
                                 </TextBlock.Style>
-
-
                             </TextBlock>
                         </Grid>
                     </Border>

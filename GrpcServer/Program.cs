@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
-builder.Services.AddEntityFrameworkMySQL().AddDbContext<TalkzContext>(options =>
+builder.Services.AddDbContext<TalkzContext>(options =>
 {
     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")!);
 });

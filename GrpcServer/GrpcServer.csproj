@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\gRPC_Talkz\gRPC_Talkz.csproj" />
+    <ProjectReference Include="..\gRPC_Talkz\gRPC_Proto.csproj" />
   </ItemGroup>
 
 </Project>

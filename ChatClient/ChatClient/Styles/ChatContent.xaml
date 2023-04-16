@@ -15,11 +15,6 @@
                     <Border Background="{TemplateBinding Background}" CornerRadius="4">
                         <StackPanel Margin="8,0,0,0" Orientation="Vertical">
                             <StackPanel Orientation="Horizontal">
-                                <!--<Ellipse
-                                    Width="40"
-                                    Height="40"
-                                    Margin="0,25,0,0"
-                                    Fill="Beige" />-->
                                 <Ellipse
                                     Width="40"
                                     Height="40"

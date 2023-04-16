@@ -10,10 +10,11 @@ namespace ChatClient.Models
     public class ChatModel
     {
         public string? ChatName { get; set; }
+        public int ChatId { get; set; }
         public string? ImageSource { get; set; }
         public ObservableCollection<MessageModel>? Messages { get; set; }
         // public byte CurrentStatus { get; set; }
-        // public bool IsChatListed { get; set; }
+        public bool IsChatListed { get; set; }
         // public bool IsGroupChat { get; set; }
     }
 }

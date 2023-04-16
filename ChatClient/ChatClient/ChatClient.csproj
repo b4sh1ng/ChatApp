@@ -9,12 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Protos\chat.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.22.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.22.3" />
     <PackageReference Include="Grpc.Net.Client" Version="2.52.0" />
     <PackageReference Include="Grpc.Tools" Version="2.53.0">
       <PrivateAssets>all</PrivateAssets>
@@ -26,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\chat.proto" GrpcServices="Client" />
+    <ProjectReference Include="..\..\gRPC_Talkz\gRPC_Proto.csproj" />
   </ItemGroup>
 
   <ItemGroup>

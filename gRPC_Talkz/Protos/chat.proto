@@ -7,9 +7,10 @@ package chat;
 service Chat {
 	rpc Subscribe(Request) returns (stream SubscriberResponse); //added
 	rpc Unsubscribe(Request) returns (Empty); //added
-	rpc GetUserData(Login) returns (UserDataResponse);
+	rpc GetUserData(Login) returns (UserDataResponse); // added
 	rpc GetUserFriends(Request) returns (stream GetFriendDataResponse); //added
 	rpc GetUserChats(Request) returns (stream GetChatDataResponse); //added
+	rpc GetChatData(Request) returns (stream MessageToChat);
 	rpc PostMessage(Msg) returns (Empty); //added
 }
 
@@ -70,7 +71,8 @@ message UserDataResponse {
 message GetChatDataResponse {	
 	int32 chatId = 1;
 	bool isListed = 2;
-	string ChatImgB64 = 3;
+	string chatImgB64 = 3;
+	string chatName = 4;
 }
 
 message GetFriendDataResponse {
@@ -83,4 +85,14 @@ message Msg {
 	int32 chatId = 1;
 	int32 fromId = 2;
 	string text = 3;	
+}
+
+message MessageToChat {
+	string username = 1;
+	string imageSource = 2;
+	int32 fromId = 3;
+	string text = 4;
+	int64 time = 5;
+	bool isEdited = 6;
+	bool isRead = 7;
 }

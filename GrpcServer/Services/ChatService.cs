@@ -3,6 +3,7 @@ using GrpcServer;
 using GrpcServer.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks.Dataflow;
 
 namespace GrpcServer.Services
@@ -42,7 +43,7 @@ namespace GrpcServer.Services
         }
         public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
         {
-            logger.LogInformation($"Nachricht für Chat {request.ChatId} mit Inhalt:\n\"{request.Text}\"");
+            logger.LogInformation($"[{DateTime.Now}] Nachricht für Chat {request.ChatId} mit Inhalt:\n\"{request.Text}\"");
             var query = dbcontext.Chats
                 .Where(c => c.ChatId == request.ChatId)
                 .Select(c => c.UserId);
@@ -59,7 +60,7 @@ namespace GrpcServer.Services
                             ToChatId = request.ChatId,
                             FromId = request.FromId,
                             ToId = userId,
-                            Text = request.Text,                            
+                            Text = request.Text,
                         }
                     });
                 }
@@ -71,12 +72,13 @@ namespace GrpcServer.Services
         {
             // Später Login Kontrolle + JWT Token hinzufügen
             var DbRequest = dbcontext.Usercredentials.FirstOrDefault(x => x.Username == request.LoginMail);
+            logger.LogInformation($"[{DateTime.Now}] Daten gesendet: {DbRequest.Username}");
             return await Task.FromResult(new UserDataResponse
             {
                 MyUserid = DbRequest!.UserId,
                 MyUsername = DbRequest.Username,
                 MyUsernameId = DbRequest.UsernameId,
-                MyProfileImgB64 = DbRequest.ProfileImgB64
+                MyProfileImgB64 = DbRequest.ProfileImgB64,
             });
         }
         public override async Task GetUserChats(Request request, IServerStreamWriter<GetChatDataResponse> responseStream, ServerCallContext context)
@@ -92,7 +94,8 @@ namespace GrpcServer.Services
                         {
                             chats.ChatId,
                             chats.IsListed,
-                            B64Img = userdata.ProfileImgB64
+                            B64Img = userdata.ProfileImgB64,
+                            ChatName = userdata.Username,
                         };
 
             var result = await query.ToListAsync();
@@ -104,7 +107,9 @@ namespace GrpcServer.Services
                     ChatId = chats.ChatId,
                     IsListed = Convert.ToBoolean(chats.IsListed),
                     ChatImgB64 = chats.B64Img,
+                    ChatName = chats.ChatName,
                 });
+                logger.LogInformation($"[{DateTime.Now}] Information von ChatId {chats.ChatId} gesendet.");
             }
         }
         public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
@@ -129,6 +134,39 @@ namespace GrpcServer.Services
                     IsFriend = Convert.ToBoolean(friends.IsFriend),
                     FriendImgB64 = FriendImgRequest.ProfileImgB64,
                 });
+            }
+        }
+        public override async Task GetChatData(Request request, IServerStreamWriter<MessageToChat> responseStream, ServerCallContext context)
+        {
+            var query = from message in dbcontext.Messages
+                        where message.ChatId == request.Id
+                        join user in dbcontext.Usercredentials
+                        on message.FromId equals user.UserId
+                        select new
+                        {
+                            Username = user.Username,
+                            ImageSource = user.ProfileImgB64,
+                            FromId = message.FromId,
+                            Text = message.Message1,
+                            Time = message.MessageTimestamp,
+                            IsEdited = Convert.ToBoolean(message.IsEdited),
+                            IsRead = Convert.ToBoolean(message.IsRead),
+                        };
+            var result = await query.ToListAsync();
+
+            foreach (var message in result)
+            {
+                await responseStream.WriteAsync(new MessageToChat
+                {
+                    Username = message.Username,
+                    ImageSource = message.ImageSource,
+                    FromId = message.FromId,
+                    Text = message.Text,
+                    Time = message.Time,
+                    IsEdited = message.IsEdited,
+                    IsRead = message.IsRead,
+                });
+                logger.LogInformation($"[{DateTime.Now}] {message.Username} = {message.Text}");
             }
         }
     }

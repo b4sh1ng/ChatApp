@@ -25,11 +25,6 @@
                         Background="{TemplateBinding Background}"
                         CornerRadius="4">
                         <StackPanel Margin="10,5,0,5" Orientation="Horizontal">
-                            <!--<Border
-                                Width="35"
-                                Height="35"
-                                Background="CornflowerBlue"
-                                CornerRadius="30" />-->
                             <Ellipse Width="35" Height="35">
                                 <Ellipse.Fill>
                                     <ImageBrush ImageSource="{Binding ImageSource, Converter={StaticResource Base64ImageConverter}}" />
