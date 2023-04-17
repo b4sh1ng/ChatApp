@@ -23,22 +23,33 @@ namespace GrpcServer.Services
         public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
         {
             logger.LogInformation($"Subscribe Anfrage erhalten von: {request.Id}");
+            //var cancellationToken = context.CancellationToken;
             subscribers[request.Id] = responseStream;
             while (subscribers.ContainsKey(request.Id))
             {
                 var message = await buffer.ReceiveAsync();
+                //if (cancellationToken.IsCancellationRequested)
+                //{
+                //    subscribers.Remove(request.Id);
+                //    logger.LogInformation($"[{DateTime.Now}] Stream mit Id: {request.Id} beendet");
+                //    return;
+                //}
                 foreach (var serverStreamWriter in subscribers.Values)
                 {
                     if (message.NewMessage.ToId == request.Id)
                     {
+                        logger.LogInformation($"[{DateTime.Now}] Nachricht senden and ID: {request.Id}");
                         await serverStreamWriter.WriteAsync(message);
                     }
                 }
             }
+            subscribers.Remove(request.Id);
+            logger.LogInformation($"[{DateTime.Now}] Stream mit Id: {request.Id} beendet");
         }
         public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
         {
             subscribers.Remove(request.Id);
+            logger.LogInformation($"[{DateTime.Now}] Unsubscribe Anfrage erhalten von: {request.Id}");
             return Task.FromResult(new Empty());
         }
         public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
@@ -47,6 +58,9 @@ namespace GrpcServer.Services
             var query = dbcontext.Chats
                 .Where(c => c.ChatId == request.ChatId)
                 .Select(c => c.UserId);
+            var userQuery = dbcontext.Usercredentials
+                .Single(x => x.UserId == request.FromId);
+                
 
             foreach (var userId in query)
             {
@@ -57,12 +71,17 @@ namespace GrpcServer.Services
                         MessageType = 2,
                         NewMessage = new NewMessage()
                         {
+                            //Server data
                             ToChatId = request.ChatId,
-                            FromId = request.FromId,
                             ToId = userId,
+                            //User data
+                            Username = userQuery.Username,
+                            FromId = request.FromId,
+                            ImageSource = userQuery.ProfileImgB64,                            
                             Text = request.Text,
+                            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
                         }
-                    });
+                    }); ;
                 }
             }
             // ...Write Data to DB
@@ -73,13 +92,14 @@ namespace GrpcServer.Services
             // Später Login Kontrolle + JWT Token hinzufügen
             var DbRequest = dbcontext.Usercredentials.FirstOrDefault(x => x.Username == request.LoginMail);
             logger.LogInformation($"[{DateTime.Now}] Daten gesendet: {DbRequest.Username}");
-            return await Task.FromResult(new UserDataResponse
+            var response = (new UserDataResponse
             {
                 MyUserid = DbRequest!.UserId,
                 MyUsername = DbRequest.Username,
                 MyUsernameId = DbRequest.UsernameId,
                 MyProfileImgB64 = DbRequest.ProfileImgB64,
             });
+            return response;
         }
         public override async Task GetUserChats(Request request, IServerStreamWriter<GetChatDataResponse> responseStream, ServerCallContext context)
         {

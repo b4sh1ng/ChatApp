@@ -38,9 +38,12 @@ message NewChat {
 
 message NewMessage {
 	int32 toChatId = 1;
-	int32 fromId = 2;
-	int32 toId = 3;
-	string text = 4;
+	string username = 2;
+	int32 fromId = 3;
+	string imageSource = 4;
+	int32 toId = 5;
+	string text = 6;
+	int64 time = 7;
 }
 
 message NewRequest {

@@ -32,9 +32,9 @@ namespace ChatClient.ViewModels
         [ObservableProperty]
         private string? message;
         public ICommand SendCommand { get; set; }
-        private void Send()
+        private async void Send()
         {
-            Client.PostMessage(new Msg
+            await Client.PostMessageAsync(new Msg
             {
                 ChatId = chatId,
                 FromId = userId,
@@ -58,6 +58,7 @@ namespace ChatClient.ViewModels
                 ImageSource = chatModel.ImageSource;
                 MessageTo = $"@{chatModel!.ChatName}";
                 chatId = chatModel.ChatId;
+                userId = 1;
                 Client = client;
             }
         }
