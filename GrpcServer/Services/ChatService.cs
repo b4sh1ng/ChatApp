@@ -2,6 +2,8 @@ using Grpc.Core;
 using GrpcServer;
 using GrpcServer.Entities;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
@@ -12,60 +14,64 @@ namespace GrpcServer.Services
     {
         private readonly ILogger<ChatService> logger;
         private readonly TalkzContext dbcontext;
-        private static Dictionary<int, IServerStreamWriter<SubscriberResponse>> subscribers = new();
+        private static ConcurrentDictionary<int, IServerStreamWriter<SubscriberResponse>> subscribers = new();
         private static readonly BufferBlock<SubscriberResponse> buffer = new();
 
         public ChatService(ILogger<ChatService> logger, TalkzContext DBContext)
         {
             this.logger = logger;
             dbcontext = DBContext!;
+            Task.Run(async () => await SubSender());
+        }
+        private async Task SubSender()
+        {
+            while(true)
+            {
+                var message = await buffer.ReceiveAsync();
+                Parallel.ForEach (subscribers, (subscriber) =>
+                {
+                    if (message.NewMessage.ToId == subscriber.Key)
+                    {
+                        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachricht senden an ID: {message.NewMessage.ToId}");
+                        subscriber.Value.WriteAsync(message);
+                    }
+                });
+            }
         }
         public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
         {
-            logger.LogInformation($"Subscribe Anfrage erhalten von: {request.Id}");
-            //var cancellationToken = context.CancellationToken;
-            subscribers[request.Id] = responseStream;
+            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
+            subscribers.TryAdd(request.Id, responseStream);
+
             while (subscribers.ContainsKey(request.Id))
             {
-                var message = await buffer.ReceiveAsync();
-                //if (cancellationToken.IsCancellationRequested)
-                //{
-                //    subscribers.Remove(request.Id);
-                //    logger.LogInformation($"[{DateTime.Now}] Stream mit Id: {request.Id} beendet");
-                //    return;
-                //}
-                foreach (var serverStreamWriter in subscribers.Values)
-                {
-                    if (message.NewMessage.ToId == request.Id)
-                    {
-                        logger.LogInformation($"[{DateTime.Now}] Nachricht senden and ID: {request.Id}");
-                        await serverStreamWriter.WriteAsync(message);
-                    }
-                }
+                await Task.Delay(1);
+                // runs for each client, SubSender handles buffer messages
             }
-            subscribers.Remove(request.Id);
-            logger.LogInformation($"[{DateTime.Now}] Stream mit Id: {request.Id} beendet");
+            subscribers.TryRemove(request.Id, out _);
+            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Stream mit Id: {request.Id} beendet");
         }
         public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
         {
-            subscribers.Remove(request.Id);
-            logger.LogInformation($"[{DateTime.Now}] Unsubscribe Anfrage erhalten von: {request.Id}");
+            subscribers.TryRemove(request.Id, out _);
+            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Unsubscribe Anfrage erhalten von: {request.Id}");
             return Task.FromResult(new Empty());
         }
         public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
         {
-            logger.LogInformation($"[{DateTime.Now}] Nachricht für Chat {request.ChatId} mit Inhalt:\n\"{request.Text}\"");
+            //logger.LogInformation($"[{DateTime.Now}] Nachricht für Chat {request.ChatId} mit Inhalt:\n\"{request.Text}\"");
             var query = dbcontext.Chats
                 .Where(c => c.ChatId == request.ChatId)
                 .Select(c => c.UserId);
             var userQuery = dbcontext.Usercredentials
                 .Single(x => x.UserId == request.FromId);
-                
+
 
             foreach (var userId in query)
             {
-                if (subscribers.ContainsKey(userId))
+                if (subscribers.TryGetValue(userId, out var responseStream))
                 {
+                    logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachrich im Buffer hinzugefügt für ID {userId}");
                     buffer.Post(new SubscriberResponse()
                     {
                         MessageType = 2,
@@ -77,21 +83,31 @@ namespace GrpcServer.Services
                             //User data
                             Username = userQuery.Username,
                             FromId = request.FromId,
-                            ImageSource = userQuery.ProfileImgB64,                            
+                            ImageSource = userQuery.ProfileImgB64,
                             Text = request.Text,
                             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
                         }
                     }); ;
                 }
             }
-            // ...Write Data to DB
+
+            dbcontext.Messages.Add(new Message()
+            {
+                ChatId = request.ChatId,
+                Message1 = request.Text,
+                MessageTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                IsEdited = false,
+                IsRead = false,
+                FromId = request.FromId,
+            });
+            dbcontext.SaveChangesAsync().Wait();
             return Task.FromResult(new Empty());
         }
         public override async Task<UserDataResponse> GetUserData(Login request, ServerCallContext context)
         {
             // Später Login Kontrolle + JWT Token hinzufügen
             var DbRequest = dbcontext.Usercredentials.FirstOrDefault(x => x.Username == request.LoginMail);
-            logger.LogInformation($"[{DateTime.Now}] Daten gesendet: {DbRequest.Username}");
+            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Daten gesendet: {DbRequest.Username}");
             var response = (new UserDataResponse
             {
                 MyUserid = DbRequest!.UserId,
@@ -129,7 +145,7 @@ namespace GrpcServer.Services
                     ChatImgB64 = chats.B64Img,
                     ChatName = chats.ChatName,
                 });
-                logger.LogInformation($"[{DateTime.Now}] Information von ChatId {chats.ChatId} gesendet.");
+                logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Information von ChatId {chats.ChatId} gesendet.");
             }
         }
         public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
@@ -186,7 +202,7 @@ namespace GrpcServer.Services
                     IsEdited = message.IsEdited,
                     IsRead = message.IsRead,
                 });
-                logger.LogInformation($"[{DateTime.Now}] {message.Username} = {message.Text}");
+                logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] {message.Username} = {message.Text}");
             }
         }
     }

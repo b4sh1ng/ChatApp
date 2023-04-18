@@ -43,7 +43,7 @@
         <ListView
             Grid.Row="1"
             Background="Transparent"
-            BorderThickness="0"
+            BorderThickness="0"            
             ItemContainerStyle="{StaticResource ChatContent}"
             ItemsSource="{Binding Messages}" />
         <Border

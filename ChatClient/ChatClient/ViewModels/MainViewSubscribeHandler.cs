@@ -48,8 +48,9 @@ public partial class MainView
                         FromId = resp.FromId,
                         ImageSource = resp.ImageSource,
                         Message = resp.Text,
-                        Time = DateTimeOffset.FromUnixTimeSeconds(resp.Time).DateTime,                        
+                        Time = DateTimeOffset.FromUnixTimeSeconds(resp.Time).DateTime,
                     });
+
             });
         }
         catch (Exception ex)

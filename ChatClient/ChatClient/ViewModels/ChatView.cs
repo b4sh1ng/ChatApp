@@ -47,7 +47,7 @@ namespace ChatClient.ViewModels
         {
             SendCommand = new RelayCommand(Send);
         }
-        public ChatView(ref ChatModel? chatModel, Chat.ChatClient client)
+        public ChatView(ref ChatModel? chatModel, Chat.ChatClient client, int userId)
         {
             SendCommand = new RelayCommand(Send);
             if (chatModel is not null)
@@ -58,7 +58,7 @@ namespace ChatClient.ViewModels
                 ImageSource = chatModel.ImageSource;
                 MessageTo = $"@{chatModel!.ChatName}";
                 chatId = chatModel.ChatId;
-                userId = 1;
+                this.userId = userId;
                 Client = client;
             }
         }
