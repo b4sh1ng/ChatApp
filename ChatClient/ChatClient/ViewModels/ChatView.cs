@@ -47,7 +47,7 @@ namespace ChatClient.ViewModels
         {
             SendCommand = new RelayCommand(Send);
         }
-        public ChatView(ref ChatModel? chatModel, Chat.ChatClient client, int userId)
+        public ChatView(ChatModel? chatModel, Chat.ChatClient client, int userId)
         {
             SendCommand = new RelayCommand(Send);
             if (chatModel is not null)

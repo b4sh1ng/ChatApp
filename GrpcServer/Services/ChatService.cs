@@ -25,10 +25,10 @@ namespace GrpcServer.Services
         }
         private async Task SubSender()
         {
-            while(true)
+            while (true)
             {
                 var message = await buffer.ReceiveAsync();
-                Parallel.ForEach (subscribers, (subscriber) =>
+                Parallel.ForEach(subscribers, (subscriber) =>
                 {
                     if (message.NewMessage.ToId == subscriber.Key)
                     {
@@ -148,30 +148,6 @@ namespace GrpcServer.Services
                 logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Information von ChatId {chats.ChatId} gesendet.");
             }
         }
-        public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
-        {
-            var DbRequest = await dbcontext.Friendlists
-                .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
-                .ToListAsync();
-
-            foreach (var friends in DbRequest)
-            {
-                int friendId;
-
-                if (friends.UserId1 == request.Id)
-                    friendId = friends.UserId2;
-                else
-                    friendId = friends.UserId1;
-
-                var FriendImgRequest = await dbcontext.Usercredentials.Where(x => x.UserId == friendId).SingleAsync();
-                await responseStream.WriteAsync(new GetFriendDataResponse
-                {
-                    FriendId = friendId,
-                    IsFriend = Convert.ToBoolean(friends.IsFriend),
-                    FriendImgB64 = FriendImgRequest.ProfileImgB64,
-                });
-            }
-        }
         public override async Task GetChatData(Request request, IServerStreamWriter<MessageToChat> responseStream, ServerCallContext context)
         {
             var query = from message in dbcontext.Messages
@@ -203,6 +179,44 @@ namespace GrpcServer.Services
                     IsRead = message.IsRead,
                 });
                 logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] {message.Username} = {message.Text}");
+            }
+        }
+        //public override async Task<NewChat> GetChatId(ChatRequest request, ServerCallContext context)
+        //{
+        //    var dbRequest = dbcontext.Chats
+        //        .Where(t1 => t1.UserId == 1)
+        //        .Join(dbcontext.Chats.Where(t2 => t2.UserId == 2), t1 => t1.ChatId, t2 => t2.ChatId, (t1, t2) => t1.ChatId)
+        //        .Distinct()
+        //        .ToListAsync();
+        //    return new NewChat() { NewChatId = dbRequest.Result(); };
+        //}
+        public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
+        {
+            var dbRequest = await dbcontext.Friendlists
+                .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
+                .ToListAsync();
+
+            foreach (var friends in dbRequest)
+            {
+                int friendId;
+
+                if (friends.UserId1 == request.Id)
+                    friendId = friends.UserId2;
+                else
+                    friendId = friends.UserId1;
+
+
+
+                var friendDataRequest = await dbcontext.Usercredentials.Where(x => x.UserId == friendId).SingleAsync();
+                await responseStream.WriteAsync(new GetFriendDataResponse
+                {
+                    FriendId = friendId,
+                    IsFriend = Convert.ToBoolean(friends.IsFriend),
+                    FriendImgB64 = friendDataRequest.ProfileImgB64,
+                    FriendUsername = friendDataRequest.Username,
+                    FriendUserId = friendDataRequest.UserId,
+                    CurrentStatus = friendDataRequest.CurrentStatus,
+                });
             }
         }
     }

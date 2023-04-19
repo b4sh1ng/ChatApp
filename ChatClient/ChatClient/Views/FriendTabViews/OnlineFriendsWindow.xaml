@@ -15,10 +15,10 @@
         <StackPanel>
             <Label
                 Margin="15,0,0,0"
-                Content="Online ~ 2"
+                Content="{Binding FriendCount}"
                 FontSize="14"
                 FontWeight="Bold" />
-            <ListView ItemContainerStyle="{StaticResource FriendsCard}" ItemsSource="{Binding FriendList}" />
+            <ListView ItemContainerStyle="{StaticResource FriendsCard}" ItemsSource="{Binding FriendList}"/>
         </StackPanel>
     </Grid>
 </UserControl>

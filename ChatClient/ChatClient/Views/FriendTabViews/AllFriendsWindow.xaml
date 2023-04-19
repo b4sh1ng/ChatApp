@@ -14,10 +14,10 @@
     <Grid>
         <StackPanel>
             <Label
-                Content="All Friends ~ 5"
+                Margin="15,0,0,0"
+                Content="{Binding FriendCount}"
                 FontSize="14"
-                FontWeight="Bold" 
-                Margin="15,0,0,0"/>
+                FontWeight="Bold" />
             <ListView ItemContainerStyle="{StaticResource FriendsCard}" ItemsSource="{Binding FriendList}" />
         </StackPanel>
     </Grid>

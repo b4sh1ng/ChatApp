@@ -13,6 +13,6 @@ namespace ChatClient.Models
         public int UsernameId { get; set; }
         public string? ImageSource { get; set; }
         public bool IsFriend { get; set; }
-        public byte CurrentStatus { get; set; }
+        public int CurrentStatus { get; set; }
     }
 }

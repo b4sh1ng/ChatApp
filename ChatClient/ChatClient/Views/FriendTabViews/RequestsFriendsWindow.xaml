@@ -15,7 +15,7 @@
         <StackPanel>
             <Label
                 Margin="15,0,0,0"
-                Content="Requests ~ 1"
+                Content="{Binding FriendCount}"
                 FontSize="14"
                 FontWeight="Bold" />
             <ListView ItemContainerStyle="{StaticResource FriendsRequestCard}" ItemsSource="{Binding FriendList}" />

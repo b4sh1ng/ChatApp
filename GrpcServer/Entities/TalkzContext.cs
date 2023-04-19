@@ -65,7 +65,7 @@ public partial class TalkzContext : DbContext
         {
             entity
                 .HasKey(e => new { e.FromId, e.MessageTimestamp }).HasName("PRIMARY");
-                
+
             entity.ToTable("messages");
 
             entity.Property(e => e.ChatId)
@@ -107,6 +107,9 @@ public partial class TalkzContext : DbContext
             entity.Property(e => e.UsernameId)
                 .HasColumnType("int(11)")
                 .HasColumnName("usernameId");
+            entity.Property<int>(e => e.CurrentStatus)
+                .HasDefaultValueSql("0")
+                .HasColumnName("currentStatus");
         });
 
         OnModelCreatingPartial(modelBuilder);

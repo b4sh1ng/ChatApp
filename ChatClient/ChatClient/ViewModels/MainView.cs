@@ -1,6 +1,7 @@
 ﻿using ChatClient.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using GrpcServer;
@@ -16,11 +17,11 @@ namespace ChatClient.ViewModels;
 
 public partial class MainView : BaseView
 {
-    public ObservableCollection<MessageModel>? Messages { get; set; } = new ObservableCollection<MessageModel>();
-    public static ObservableCollection<ChatModel>? Chats { get; set; } = new ObservableCollection<ChatModel>();
+    public static ObservableCollection<FriendModel>? FriendList { get; set; } = new();
+    public static ObservableCollection<ChatModel>? Chats { get; set; } = new();
+    public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
     public Chat.ChatClient client { get; } = new Chat.ChatClient(Channel);
-    public ObservableCollection<FriendModel>? FriendList;
 
     [ObservableProperty]
     private int userId;
@@ -31,9 +32,9 @@ public partial class MainView : BaseView
     [ObservableProperty]
     private bool friendsIsSelected;
     [ObservableProperty]
-    private BaseView? selectedView;
+    private static BaseView? selectedView;
     [ObservableProperty]
-    private ChatModel? selectedChat;
+    private static ChatModel? selectedChat;
     [ObservableProperty]
     public string? message;
     [ObservableProperty]
@@ -41,15 +42,18 @@ public partial class MainView : BaseView
     public MainView()
     {
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
-        SelectedView = new FriendsView();
+        //SelectedView = new FriendsView();
         FriendsIsSelected = true;
         GetUserData(client).Wait();
 
         Task.Run(async () =>
         {
             Chats = await GetUserChats(client);
-            await Subscribe(client, UserId);
+            FriendList = await GetFriendListData(client);
+            SelectedView = new FriendsView(FriendList);
+            await Subscribe(client, UserId);            
         });
+        
     }
     private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
@@ -58,16 +62,35 @@ public partial class MainView : BaseView
     partial void OnSelectedChatChanged(ChatModel? value)
     {
         FriendsIsSelected = false;
-        SelectedView = new ChatView(ref value, client, UserId);
+        SelectedView = new ChatView(value, client, UserId);
     }
-
+    [RelayCommand]
+    private void OpenChat(int parameter)
+    {
+        int chatId = 0;
+        foreach (var chat in Chats)
+        {
+            foreach (var message in chat.Messages)
+            {
+                if (message.FromId == parameter)
+                {
+                    chatId = chat.ChatId;
+                }
+            }
+        }
+        SelectedChat = Chats.Where(x => x.ChatId == chatId).Single();
+        FriendsIsSelected = false;
+        SelectedView = new ChatView((ChatModel?)Chats
+            .Where(x => x.ChatId == chatId)
+            .Single(), client, UserId);
+    }
     [RelayCommand]
     private void ChangeView(string? parameter)
     {
         if (parameter == "friends")
         {
             SelectedChat = null;
-            SelectedView = new FriendsView();
+            SelectedView = new FriendsView(FriendList);
             FriendsIsSelected = true;
         }
         else if (parameter == "settings")
@@ -76,8 +99,30 @@ public partial class MainView : BaseView
             SelectedView = new SettingsView();
             FriendsIsSelected = false;
         }
+        // make a seperate method for swapping view
     }
-    public Task GetUserData(Chat.ChatClient client)
+    private async Task Subscribe(Chat.ChatClient client, int chatId)
+    {
+        var sub = client.Subscribe(new Request { Id = UserId });
+
+        try
+        {
+            await foreach (var x in sub.ResponseStream.ReadAllAsync())
+            {
+                ProcessResponseMessage(sub.ResponseStream.Current);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+        await client.UnsubscribeAsync(new Request { Id = chatId });
+    }
+    private async Task Unsubscribe(Chat.ChatClient client, int chatId)
+    {
+        await client.UnsubscribeAsync(new Request { Id = chatId });
+    }
+    private Task GetUserData(Chat.ChatClient client)
     {
         var response = client.GetUserData(new Login
         {
@@ -90,7 +135,7 @@ public partial class MainView : BaseView
         UsernameId = $"#{response.MyUsernameId}";
         return Task.CompletedTask;
     }
-    public async Task<ObservableCollection<ChatModel>> GetUserChats(Chat.ChatClient client)
+    private async Task<ObservableCollection<ChatModel>> GetUserChats(Chat.ChatClient client)
     {
         var chatList = new ObservableCollection<ChatModel>();
         var response = client.GetUserChats(new Request { Id = UserId });
@@ -126,27 +171,24 @@ public partial class MainView : BaseView
             });
         }
         var subMessageList = new ObservableCollection<MessageModel>(messageList.OrderBy(x => x.Time));
-        return subMessageList ;
+        return subMessageList;
     }
-    private async Task Subscribe(Chat.ChatClient client, int chatId)
+    private async Task<ObservableCollection<FriendModel>> GetFriendListData(Chat.ChatClient client)
     {
-        var sub = client.Subscribe(new Request { Id = UserId });
-
-        try
+        var friendList = new ObservableCollection<FriendModel>();
+        var response = client.GetUserFriends(new Request { Id = UserId });
+        await foreach (var friend in response.ResponseStream.ReadAllAsync())
         {
-            await foreach (var x in sub.ResponseStream.ReadAllAsync())
+            friendList.Add(new FriendModel
             {
-                ProcessResponseMessage(sub.ResponseStream.Current);
-            }
+                FriendId = friend.FriendId,
+                ImageSource = friend.FriendImgB64,
+                Username = friend.FriendUsername,
+                UsernameId = friend.FriendUserId,
+                IsFriend = friend.IsFriend,
+                CurrentStatus = friend.CurrentStatus,
+            });
         }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
-        await client.UnsubscribeAsync(new Request { Id = chatId });
-    }
-    private async Task Unsubscribe(Chat.ChatClient client, int chatId)
-    {
-        await client.UnsubscribeAsync(new Request { Id = chatId });
+        return friendList;
     }
 }

@@ -12,6 +12,7 @@ service Chat {
 	rpc GetUserChats(Request) returns (stream GetChatDataResponse); //added
 	rpc GetChatData(Request) returns (stream MessageToChat);
 	rpc PostMessage(Msg) returns (Empty); //added
+	rpc GetChatId(ChatRequest) returns (NewChat);
 }
 
 message Empty {
@@ -20,6 +21,10 @@ message Empty {
 
 message Request {
 	int32 id = 1;
+}
+message ChatRequest {
+	int32 userId = 1;
+	int32 friendId = 2;
 }
 
 message SubscriberResponse {
@@ -82,6 +87,9 @@ message GetFriendDataResponse {
 	int32 friendId = 1;
 	bool isFriend = 2;
 	string friendImgB64 = 3;
+	int32 currentStatus = 4;
+	string friendUsername = 5;
+	int32 friendUserId = 6;
 }
 
 message Msg {
