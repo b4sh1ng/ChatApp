@@ -67,17 +67,19 @@ public partial class MainView : BaseView
     [RelayCommand]
     private void OpenChat(int parameter)
     {
-        int chatId = 0;
-        foreach (var chat in Chats)
-        {
-            foreach (var message in chat.Messages)
-            {
-                if (message.FromId == parameter)
-                {
-                    chatId = chat.ChatId;
-                }
-            }
-        }
+        //int chatId = 0;
+        //foreach (var chat in Chats)
+        //{
+        //    foreach (var message in chat.Messages)
+        //    {
+        //        if (message.FromId == parameter)
+        //        {
+        //            chatId = chat.ChatId;
+        //        }
+        //    }
+        //}
+        var response = client.GetUserChats(new Request { Id = UserId });
+        var chatId = response.
         SelectedChat = Chats.Where(x => x.ChatId == chatId).Single();
         FriendsIsSelected = false;
         SelectedView = new ChatView((ChatModel?)Chats
