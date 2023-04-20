@@ -70,8 +70,8 @@
                 BorderThickness="0"
                 ItemContainerStyle="{StaticResource ChatCard}"
                 ItemsSource="{Binding Chats}"
-                SelectedItem="{Binding SelectedChat, Mode=TwoWay}" />
-
+                SelectedItem="{Binding SelectedChat}">                
+            </ListView>
             <StackPanel
                 Grid.Row="3"
                 Background="#121212"

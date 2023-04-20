@@ -79,7 +79,7 @@ namespace GrpcServer.Services
                         NewMessage = new NewMessage()
                         {
                             //Server data
-                            ToChatId = request.ChatId,                            
+                            ToChatId = request.ChatId,
                             //User data
                             Username = userQuery.Username,
                             FromId = request.FromId,
@@ -136,12 +136,12 @@ namespace GrpcServer.Services
 
             var result = await query.ToListAsync();
 
-            foreach (var chats in query)
+            foreach (var chats in result)
             {
                 await responseStream.WriteAsync(new GetChatDataResponse
                 {
                     ChatId = chats.ChatId,
-                    IsListed = Convert.ToBoolean(chats.IsListed),
+                    IsListed = Convert.ToBoolean(await dbcontext.Chats.Where(x => x.UserId == request.Id).Where(x => x.ChatId == chats.ChatId).Select(x => x.IsListed).SingleAsync()),
                     ChatImgB64 = chats.B64Img,
                     ChatName = chats.ChatName,
                 });
@@ -183,12 +183,13 @@ namespace GrpcServer.Services
         }
         public override async Task<NewChat> GetChatId(ChatRequest request, ServerCallContext context)
         {
+            logger.LogInformation($"Anfrage von ClientID {request.UserId} erhalten");
             //Get current ChatId if exist
             var queryChatId = dbcontext.Chats
                 .Where(u1 => u1.UserId == request.UserId)
                 .Join(dbcontext.Chats.Where(u2 => u2.UserId == request.FriendId), u1 => u1.ChatId, u2 => u2.ChatId, (u1, u2) => u1.ChatId)
                 .SingleOrDefault();
-            //create new ChatId if no ChadId exist(queryChatid is 0)
+            //create new Chat&ChatId if no ChadId exist(if queryChatid is 0)
             if (queryChatId is 0)
             {
                 var maxChatId = dbcontext.Chats.Max(c => c.ChatId);
@@ -207,30 +208,51 @@ namespace GrpcServer.Services
                 });
                 await dbcontext.SaveChangesAsync();
 
+                // Send new ChatData to Requester
                 buffer.Post(new SubscriberResponse
                 {
                     MessageType = 1,
-                    ToId = 1,
+                    ToId = request.UserId,
                     NewChat = new NewChat()
                     {
                         ChatData = new GetChatDataResponse()
                         {
                             ChatId = newChatId,
-                            ChatImgB64 = await dbcontext.Usercredentials.Where(x => x.UserId == 3).Select(x => x.ProfileImgB64).SingleAsync(),
-                            ChatName = await dbcontext.Usercredentials.Where(x => x.UserId == 3).Select(x => x.Username).SingleAsync(),
-                            IsListed = true,                            
+                            ChatImgB64 = await dbcontext.Usercredentials.Where(x => x.UserId == request.FriendId).Select(x => x.ProfileImgB64).SingleAsync(),
+                            ChatName = await dbcontext.Usercredentials.Where(x => x.UserId == request.FriendId).Select(x => x.Username).SingleAsync(),
+                            IsListed = true,
                         }
                     }
                 });
-                await buffer.ReceiveAsync();
+                // Send new ChatData to Friend but its not listed for him in his UI until Requester sent a Message
+                buffer.Post(new SubscriberResponse
+                {
+                    MessageType = 1,
+                    ToId = request.FriendId,
+                    NewChat = new NewChat()
+                    {
+                        ChatData = new GetChatDataResponse()
+                        {
+                            ChatId = newChatId,
+                            ChatImgB64 = await dbcontext.Usercredentials.Where(x => x.UserId == request.UserId).Select(x => x.ProfileImgB64).SingleAsync(),
+                            ChatName = await dbcontext.Usercredentials.Where(x => x.UserId == request.UserId).Select(x => x.Username).SingleAsync(),
+                            IsListed = false,
+                        }
+                    }
+                });
+
+                logger.LogInformation($"Neuen Chat erstellt mit ID {newChatId}");
                 return new NewChat()
                 {
                     ChatData = new GetChatDataResponse() { ChatId = newChatId }
                 };
             }
+            var chat = dbcontext.Chats.FirstOrDefault(x => x.ChatId == queryChatId && x.UserId == request.UserId);
+            chat.IsListed = true;
+            dbcontext.SaveChanges();
+
             return new NewChat() { ChatData = new GetChatDataResponse() { ChatId = queryChatId } };
         }
-
         public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
         {
             var dbRequest = await dbcontext.Friendlists

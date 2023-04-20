@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:ChatClient.Converter">
     <local:Base64ImageConverter x:Key="Base64ImageConverter" />
+
     <Style x:Key="ChatCard" TargetType="ListViewItem">
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
@@ -20,6 +21,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ListViewItem">
                     <Border
+                        x:Name="Card"
                         Height="45"
                         Margin="8,2,8,2"
                         Background="{TemplateBinding Background}"
@@ -52,6 +54,11 @@
                             </StackPanel>
                         </StackPanel>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsChatListed}" Value="false">
+                            <Setter TargetName="Card" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

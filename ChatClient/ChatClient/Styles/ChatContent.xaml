@@ -53,30 +53,10 @@
                                 IsReadOnly="True"
                                 Text="{Binding Message}"
                                 TextWrapping="Wrap" />
-                            <!--<Ellipse.Fill>
-                            <ImageBrush ImageSource="{Binding ImageSource}"
-                                            RenderOptions.BitmapScalingMode="Fant" />
-                        </Ellipse.Fill>-->
-                            <!--<StackPanel Margin="5,10,0,0" Orientation="Horizontal" />-->
                         </StackPanel>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <!--<Style.Resources>
-            <ControlTemplate x:Key="CustomRow">
-                <StackPanel Orientation="Horizontal">
-                    <Label
-                        Margin="40,-2,0,-2"
-                        Content="{Binding Message}"
-                        Foreground="White" />
-                </StackPanel>
-            </ControlTemplate>
-        </Style.Resources>-->
-        <!--<Style.Triggers>
-            <DataTrigger Binding="{Binding FirstMessage}" Value="False">
-                <Setter Property="Template" Value="{StaticResource CustomRow}" />
-            </DataTrigger>
-        </Style.Triggers>-->
     </Style>
 </ResourceDictionary>

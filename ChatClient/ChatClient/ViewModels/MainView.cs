@@ -7,6 +7,7 @@ using Grpc.Net.Client;
 using GrpcServer;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ public partial class MainView : BaseView
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
     public Chat.ChatClient client { get; } = new Chat.ChatClient(Channel);
 
+    private TaskCompletionSource<bool>? taskCompletion;
     [ObservableProperty]
     private int userId;
     [ObservableProperty]
@@ -42,7 +44,6 @@ public partial class MainView : BaseView
     public MainView()
     {
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
-        //SelectedView = new FriendsView();
         FriendsIsSelected = true;
         GetUserData(client).Wait();
 
@@ -51,29 +52,13 @@ public partial class MainView : BaseView
             Chats = await GetUserChats(client);
             FriendList = await GetFriendListData(client);
             SelectedView = new FriendsView(FriendList);
-            await Subscribe(client, UserId);            
-        });        
-    }
-    private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-    {
-        Unsubscribe(client, UserId);
+            await Subscribe(client, UserId);
+        });
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
         FriendsIsSelected = false;
         SelectedView = new ChatView(value, client, UserId);
-    }
-    [RelayCommand]
-    private void OpenChat(int friendId)
-    {
-        var response = client.GetChatId(new ChatRequest { UserId = UserId, FriendId = friendId });
-        var chatId = response.ChatData.ChatId;
-        SelectedChat = Chats.Where(x => x.ChatId == chatId).Single();
-        FriendsIsSelected = false;
-        SelectedView = new ChatView((ChatModel?)Chats
-            .Where(x => x.ChatId == chatId)
-            .Single(), client, UserId);
-        MessageBox.Show(chatId.ToString());
     }
     [RelayCommand]
     private void ChangeView(string? parameter)
@@ -91,6 +76,25 @@ public partial class MainView : BaseView
             FriendsIsSelected = false;
         }
         // make a seperate method for swapping view
+    }
+    [RelayCommand]
+    private async void OpenChat(int friendId)
+    {
+        taskCompletion = new();
+        var response = client.GetChatId(new ChatRequest { UserId = UserId, FriendId = friendId });
+        var chatId = response.ChatData.ChatId;
+        var isChatInList = Chats?.Where(x => x.ChatId == chatId).Select(x => x.ChatId).SingleOrDefault();
+        if (isChatInList == 0)
+        {
+            await taskCompletion.Task;
+        }
+        SelectedChat = Chats?.Where(x => x.ChatId == chatId).Single();
+        FriendsIsSelected = false;
+        var updateChat = Chats.First(x => x.ChatId == chatId);
+        updateChat.IsChatListed = true;
+        SelectedView = new ChatView(Chats?
+            .Where(x => x.ChatId == chatId)
+            .Single(), client, UserId);
     }
     private async Task Subscribe(Chat.ChatClient client, int chatId)
     {
@@ -181,5 +185,11 @@ public partial class MainView : BaseView
             });
         }
         return friendList;
+    }
+    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+#pragma warning disable CS4014 // Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt.
+        Unsubscribe(client, UserId);
+#pragma warning restore CS4014 // Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt.
     }
 }

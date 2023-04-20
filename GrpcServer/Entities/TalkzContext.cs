@@ -23,7 +23,7 @@ public partial class TalkzContext : DbContext
 
     public virtual DbSet<Usercredential> Usercredentials { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -107,7 +107,7 @@ public partial class TalkzContext : DbContext
             entity.Property(e => e.UsernameId)
                 .HasColumnType("int(11)")
                 .HasColumnName("usernameId");
-            entity.Property<int>(e => e.CurrentStatus)
+            entity.Property(e => e.CurrentStatus)
                 .HasDefaultValueSql("0")
                 .HasColumnName("currentStatus");
         });

@@ -27,12 +27,12 @@ public partial class MainView
         {
             Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Chats.Add(new ChatModel()
+                    Chats?.Add(new ChatModel()
                     {
                         ChatId = response.NewChat.ChatData.ChatId,
                         ChatName = response.NewChat.ChatData?.ChatName,
-                        ImageSource = response.NewChat.ChatData.ChatImgB64,
-                        IsChatListed = response.NewChat.ChatData.IsListed,
+                        ImageSource = response.NewChat.ChatData?.ChatImgB64,
+                        IsChatListed = response.NewChat.ChatData!.IsListed,
                         Messages = new ObservableCollection<MessageModel>(),
                     });
                 });
@@ -41,6 +41,7 @@ public partial class MainView
         {
             MessageBox.Show(ex.Message);
         }
+        taskCompletion?.SetResult(true);
         return true;
     }
 
@@ -51,8 +52,8 @@ public partial class MainView
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                Chats
-                    .FirstOrDefault(x => x.ChatId == resp.ToChatId).Messages
+                Chats?
+                    .FirstOrDefault(x => x.ChatId == resp.ToChatId)?.Messages?
                     .Add(new MessageModel()
                     {
                         Username = resp.Username,
@@ -66,7 +67,7 @@ public partial class MainView
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message);
-        }
+        }        
         return true;
     }
 
