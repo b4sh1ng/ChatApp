@@ -35,6 +35,7 @@ public partial class MainView
                         IsChatListed = response.NewChat.ChatData!.IsListed,
                         Messages = new ObservableCollection<MessageModel>(),
                     });
+                    
                 });
         }
         catch (Exception ex)
@@ -62,6 +63,9 @@ public partial class MainView
                         Message = resp.Text,
                         Time = DateTimeOffset.FromUnixTimeSeconds(resp.Time).DateTime,
                     });
+                //Chats = new ObservableCollection<ChatModel>(Chats.OrderByDescending(x => x.Messages?.Max(t => t.Time)));
+                Chats.OrderByDescending(x => x.Messages?.Max(t => t.Time));
+
             });
         }
         catch (Exception ex)
