@@ -66,7 +66,7 @@ Console.ReadKey();
 #region Methods
 static bool ProcessResponseMessage(SubscriberResponse response) => response switch
 {
-    { MessageType: 1 } => ProcessNewChat(response.NewChat.NewChatId),
+    { MessageType: 1 } => ProcessNewChat(response.NewChat.ChatData.ChatId),
     { MessageType: 2 } => ProcessNewMessage(response.NewMessage.ToChatId, response.NewMessage.Text),
     { MessageType: 3 } => ProcessNewFriendRequest(response.NewRequest.RequestData.FriendId),
     { MessageType: 4 } => ProcessNewUserStatus(response.NewUserStatus.UserId, response.NewUserStatus.UserStatus),

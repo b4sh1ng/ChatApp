@@ -29,16 +29,16 @@ message ChatRequest {
 
 message SubscriberResponse {
 	int32 messageType = 1;
-	optional NewChat newChat = 2;
-	optional NewMessage newMessage = 3;
-	optional NewRequest newRequest = 4;	
-	optional NewUserStatus newUserStatus = 5;
-	optional RemoveFriend removeFriend = 6;
+	int32 toId = 2;
+	optional NewChat newChat = 3;
+	optional NewMessage newMessage = 4;
+	optional NewRequest newRequest = 5;	
+	optional NewUserStatus newUserStatus = 6;
+	optional RemoveFriend removeFriend = 7;
 }
 
 message NewChat {
-	int32 newChatId = 1;
-	string chatImgB64 = 2;
+	GetChatDataResponse chatData = 1;
 }
 
 message NewMessage {
@@ -46,9 +46,8 @@ message NewMessage {
 	string username = 2;
 	int32 fromId = 3;
 	string imageSource = 4;
-	int32 toId = 5;
-	string text = 6;
-	int64 time = 7;
+	string text = 5;
+	int64 time = 6;
 }
 
 message NewRequest {

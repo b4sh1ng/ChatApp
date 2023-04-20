@@ -52,8 +52,7 @@ public partial class MainView : BaseView
             FriendList = await GetFriendListData(client);
             SelectedView = new FriendsView(FriendList);
             await Subscribe(client, UserId);            
-        });
-        
+        });        
     }
     private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
@@ -65,26 +64,16 @@ public partial class MainView : BaseView
         SelectedView = new ChatView(value, client, UserId);
     }
     [RelayCommand]
-    private void OpenChat(int parameter)
+    private void OpenChat(int friendId)
     {
-        //int chatId = 0;
-        //foreach (var chat in Chats)
-        //{
-        //    foreach (var message in chat.Messages)
-        //    {
-        //        if (message.FromId == parameter)
-        //        {
-        //            chatId = chat.ChatId;
-        //        }
-        //    }
-        //}
-        var response = client.GetUserChats(new Request { Id = UserId });
-        var chatId = response.
+        var response = client.GetChatId(new ChatRequest { UserId = UserId, FriendId = friendId });
+        var chatId = response.ChatData.ChatId;
         SelectedChat = Chats.Where(x => x.ChatId == chatId).Single();
         FriendsIsSelected = false;
         SelectedView = new ChatView((ChatModel?)Chats
             .Where(x => x.ChatId == chatId)
             .Single(), client, UserId);
+        MessageBox.Show(chatId.ToString());
     }
     [RelayCommand]
     private void ChangeView(string? parameter)

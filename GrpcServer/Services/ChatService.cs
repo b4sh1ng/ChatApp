@@ -30,9 +30,9 @@ namespace GrpcServer.Services
                 var message = await buffer.ReceiveAsync();
                 Parallel.ForEach(subscribers, (subscriber) =>
                 {
-                    if (message.NewMessage.ToId == subscriber.Key)
+                    if (message.ToId == subscriber.Key)
                     {
-                        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachricht senden an ID: {message.NewMessage.ToId}");
+                        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachricht senden an ID: {message.ToId}");
                         subscriber.Value.WriteAsync(message);
                     }
                 });
@@ -75,11 +75,11 @@ namespace GrpcServer.Services
                     buffer.Post(new SubscriberResponse()
                     {
                         MessageType = 2,
+                        ToId = userId,
                         NewMessage = new NewMessage()
                         {
                             //Server data
-                            ToChatId = request.ChatId,
-                            ToId = userId,
+                            ToChatId = request.ChatId,                            
                             //User data
                             Username = userQuery.Username,
                             FromId = request.FromId,
@@ -87,7 +87,7 @@ namespace GrpcServer.Services
                             Text = request.Text,
                             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
                         }
-                    }); ;
+                    });
                 }
             }
 
@@ -181,15 +181,56 @@ namespace GrpcServer.Services
                 logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] {message.Username} = {message.Text}");
             }
         }
-        //public override async Task<NewChat> GetChatId(ChatRequest request, ServerCallContext context)
-        //{
-        //    var dbRequest = dbcontext.Chats
-        //        .Where(t1 => t1.UserId == 1)
-        //        .Join(dbcontext.Chats.Where(t2 => t2.UserId == 2), t1 => t1.ChatId, t2 => t2.ChatId, (t1, t2) => t1.ChatId)
-        //        .Distinct()
-        //        .ToListAsync();
-        //    return new NewChat() { NewChatId = dbRequest.Result(); };
-        //}
+        public override async Task<NewChat> GetChatId(ChatRequest request, ServerCallContext context)
+        {
+            //Get current ChatId if exist
+            var queryChatId = dbcontext.Chats
+                .Where(u1 => u1.UserId == request.UserId)
+                .Join(dbcontext.Chats.Where(u2 => u2.UserId == request.FriendId), u1 => u1.ChatId, u2 => u2.ChatId, (u1, u2) => u1.ChatId)
+                .SingleOrDefault();
+            //create new ChatId if no ChadId exist(queryChatid is 0)
+            if (queryChatId is 0)
+            {
+                var maxChatId = dbcontext.Chats.Max(c => c.ChatId);
+                int newChatId = maxChatId + 1;
+                await dbcontext.Chats.AddAsync(new Entities.Chat
+                {
+                    ChatId = newChatId,
+                    IsListed = true,
+                    UserId = request.UserId,
+                });
+                await dbcontext.Chats.AddAsync(new Entities.Chat
+                {
+                    ChatId = newChatId,
+                    IsListed = false,
+                    UserId = request.FriendId,
+                });
+                await dbcontext.SaveChangesAsync();
+
+                buffer.Post(new SubscriberResponse
+                {
+                    MessageType = 1,
+                    ToId = 1,
+                    NewChat = new NewChat()
+                    {
+                        ChatData = new GetChatDataResponse()
+                        {
+                            ChatId = newChatId,
+                            ChatImgB64 = await dbcontext.Usercredentials.Where(x => x.UserId == 3).Select(x => x.ProfileImgB64).SingleAsync(),
+                            ChatName = await dbcontext.Usercredentials.Where(x => x.UserId == 3).Select(x => x.Username).SingleAsync(),
+                            IsListed = true,                            
+                        }
+                    }
+                });
+                await buffer.ReceiveAsync();
+                return new NewChat()
+                {
+                    ChatData = new GetChatDataResponse() { ChatId = newChatId }
+                };
+            }
+            return new NewChat() { ChatData = new GetChatDataResponse() { ChatId = queryChatId } };
+        }
+
         public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
         {
             var dbRequest = await dbcontext.Friendlists

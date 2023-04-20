@@ -40,7 +40,7 @@ public partial class TalkzContext : DbContext
                 .HasColumnType("int(11)")
                 .HasColumnName("chatId");
             entity.Property(e => e.IsListed)
-                .HasColumnType("tinyint(4)")
+                .HasColumnType("bool")
                 .HasColumnName("isListed");
         });
 

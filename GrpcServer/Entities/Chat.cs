@@ -9,5 +9,5 @@ public partial class Chat
 
     public int ChatId { get; set; }
 
-    public sbyte IsListed { get; set; }
+    public bool IsListed { get; set; }
 }
