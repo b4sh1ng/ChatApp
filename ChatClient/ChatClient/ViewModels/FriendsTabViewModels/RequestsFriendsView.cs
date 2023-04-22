@@ -1,4 +1,5 @@
 ﻿using ChatClient.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace ChatClient.ViewModels.FriendsTabViewModels
 {
-    class RequestsFriendsView : BaseView
+    partial class RequestsFriendsView : BaseView
     {
         public ObservableCollection<FriendModel>? FriendList { get; set; }
-        public string FriendCount { get; set; }
-
+        [ObservableProperty]
+        private string friendCount;
         public RequestsFriendsView() { }
         public RequestsFriendsView(ObservableCollection<FriendModel> friendList)
         {

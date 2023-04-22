@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:ChatClient.Views.FriendTabViews"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:self="clr-namespace:ChatClient.ViewModels.FriendsTabViewModels"
@@ -12,10 +13,45 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid>
-        <Label
-            Margin="15,0,0,0"
-            Content="Add Friends"
-            FontSize="14"
-            FontWeight="Bold" />
+        <StackPanel>
+            <Label
+                Margin="15,0,0,0"
+                Content="Add Friends"
+                FontSize="14"
+                FontWeight="Bold" />
+            <Label
+                Margin="15,0,0,0"
+                Content="Here you can add a friend with their Username#Id!"
+                FontSize="12"
+                FontWeight="SemiBold" />
+            <StackPanel Orientation="Horizontal">
+                <TextBox
+                    Grid.Row="2"
+                    Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}}, Path=ActualWidth, Converter={StaticResource ActualWidthConverter}, ConverterParameter=80}"
+                    Height="40"
+                    Margin="20,7,15,7"
+                    Style="{StaticResource FriendInputBox}" />
+                <Button
+                    Width="30"
+                    Height="30"
+                    Command="{Binding TryFriendRequestCommand}"
+                    CommandParameter="{Binding SearchTerm}"
+                    Style="{StaticResource FriendsRoundButton}">
+                    <iconPacks:PackIconFontAwesome
+                        Width="13"
+                        Margin="1,0,0,0"
+                        VerticalAlignment="Center"
+                        Kind="PlusSolid" />
+                </Button>
+            </StackPanel>
+            <Border Height="40">
+                <TextBlock
+                    Margin="25,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="Username#Id nicht gefunden :("
+                    FontWeight="Bold"
+                    Foreground="IndianRed"/>
+            </Border>
+        </StackPanel>
     </Grid>
 </UserControl>

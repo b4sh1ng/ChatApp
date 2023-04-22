@@ -3,10 +3,12 @@ using GrpcServer;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 
 namespace ChatClient.ViewModels;
 
@@ -35,7 +37,6 @@ public partial class MainView
                         IsChatListed = response.NewChat.ChatData!.IsListed,
                         Messages = new ObservableCollection<MessageModel>(),
                     });
-                    
                 });
         }
         catch (Exception ex)
@@ -45,7 +46,6 @@ public partial class MainView
         taskCompletion?.SetResult(true);
         return true;
     }
-
     bool ProcessNewMessage(SubscriberResponse response)
     {
         var resp = response.NewMessage;
@@ -64,31 +64,27 @@ public partial class MainView
                         Time = DateTimeOffset.FromUnixTimeSeconds(resp.Time).DateTime,
                     });
                 Chats = new ObservableCollection<ChatModel>(Chats.OrderByDescending(x => x.Messages?.Max(t => t.Time)));
-                
             });
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message);
-        }        
+        }
         return true;
     }
 
     bool ProcessNewFriendRequest(int friendId)
     {
-        //Console.WriteLine($"Neuer Freundesanfrage erhalten mit der Id {friendId}");
         return true;
     }
 
     bool ProcessNewUserStatus(int userId, int userStatus)
     {
-        //Console.WriteLine($"Neuen Status für Nutzer {userId} erhalten mit dem Status {userStatus}");
         return true;
     }
 
     bool ProcessFriendRemoved(int friendId)
     {
-        //Console.WriteLine($"Freund gelöscht mit der ID: {friendId}");
         return true;
     }
 }

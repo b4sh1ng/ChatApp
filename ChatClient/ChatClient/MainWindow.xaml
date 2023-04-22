@@ -4,9 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:linq="clr-namespace:System.Linq;assembly=System.Core"
     xmlns:local="clr-namespace:ChatClient"
     xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:self="clr-namespace:ChatClient.ViewModels"
     Title="ChatClient"
     Width="1000"
@@ -18,7 +20,13 @@
     <Window.DataContext>
         <self:MainView />
     </Window.DataContext>
-
+    <Window.Resources>
+        <CollectionViewSource x:Key="ChatsViewSource" Source="{Binding Chats}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription Direction="Descending" PropertyName="LatestMessageTime" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+    </Window.Resources>
 
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands>
@@ -69,9 +77,8 @@
                 Background="#222222"
                 BorderThickness="0"
                 ItemContainerStyle="{StaticResource ChatCard}"
-                ItemsSource="{Binding Chats}"
-                SelectedItem="{Binding SelectedChat}">                
-            </ListView>
+                ItemsSource="{Binding Source={StaticResource ChatsViewSource}}"
+                SelectedItem="{Binding SelectedChat}" />
             <StackPanel
                 Grid.Row="3"
                 Background="#121212"
@@ -79,7 +86,9 @@
                 <Button
                     Height="50"
                     Margin="10,0,0,0"
-                    Style="{StaticResource FriendsButton}">
+                    Command="{Binding OpenUserContextMenuCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    Style="{StaticResource UserButton}" Cursor="Hand">
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                         <Ellipse
                             Width="40"
@@ -115,27 +124,30 @@
                     </StackPanel>
                     <Button.ContextMenu>
                         <ContextMenu FlowDirection="LeftToRight" StaysOpen="true">
-                            <MenuItem Header="Test" />
+                            <MenuItem Header="Online" Command="{Binding SetStatusOnlineCommand}" />
+                            <MenuItem Header="Busy" Command="{Binding SetStatusBusyCommand}"/>
+                            <MenuItem Header="Invisible" Command="{Binding SetStatusInvisibleCommand}"/>
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
                 <DockPanel Width="134" HorizontalAlignment="Right">
                     <Button
+                        ToolTip="Logout"
                         Width="30"
                         Height="30"
                         Margin="0,0,10,0"
                         HorizontalAlignment="Right"
-                        Command="{Binding ChangeViewCommand}"
+                        Command="{Binding LogoutCommand}"
                         CommandParameter="settings"
                         Cursor="Hand"
-                        Style="{StaticResource FriendsButton}">
+                        Style="{StaticResource UserButton}">
                         <iconPacks:PackIconFontAwesome
                             Width="18"
                             Height="18"
                             Margin="0,0,0,0"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Kind="CogSolid" />
+                            Kind="SignOutAltSolid" />
                     </Button>
                 </DockPanel>
             </StackPanel>

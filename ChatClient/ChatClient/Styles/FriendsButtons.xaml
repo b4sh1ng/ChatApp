@@ -52,9 +52,6 @@
                     <Setter Property="Background" Value="#292b2f" />
                 </MultiDataTrigger.Setters>
             </MultiDataTrigger>
-            <!--<DataTrigger Binding="{Binding Selected}" Value="online">
-                <Setter Property="Background" Value="#292b2f" />
-            </DataTrigger>-->
         </Style.Triggers>
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Background" Value="Transparent" />

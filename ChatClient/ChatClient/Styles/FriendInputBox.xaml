@@ -1,0 +1,54 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="FriendInputBox" TargetType="TextBox">
+        <Setter Property="Foreground" Value="Gray" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Margin" Value="8" />
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="#3e4147" CornerRadius="8">
+                        <Grid>
+                            <TextBox
+                                x:Name="FriendRequestBox"
+                                Margin="8,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                VerticalContentAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                CaretBrush="Gray"
+                                Foreground="White"
+                                Text="{Binding SearchTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                TextWrapping="Wrap">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Return" Command="{Binding TryFriendRequestCommand}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <TextBlock
+                                Margin="15,-2,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Foreground="DarkGray"
+                                IsHitTestVisible="False"
+                                Text="Hier Username#Id eingeben!">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=FriendRequestBox}" Value="">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

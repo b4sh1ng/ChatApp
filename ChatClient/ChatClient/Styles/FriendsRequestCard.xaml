@@ -16,6 +16,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ListViewItem">
                     <Border
+                        x:Name="Card"
                         Height="55"
                         Margin="8,2,8,2"
                         Background="{TemplateBinding Background}"
@@ -43,6 +44,8 @@
                                 VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center"
+                                Command="{Binding DataContext.DenyFriendCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                CommandParameter="{Binding FriendId}"
                                 DockPanel.Dock="Right"
                                 Style="{StaticResource FriendsRoundButton}">
                                 <iconPacks:PackIconFontAwesome
@@ -58,6 +61,8 @@
                                 VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center"
+                                Command="{Binding DataContext.AcceptFriendCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                CommandParameter="{Binding FriendId}"
                                 DockPanel.Dock="Right"
                                 Style="{StaticResource FriendsRoundButton}">
                                 <iconPacks:PackIconFontAwesome
@@ -69,6 +74,11 @@
                         </DockPanel>
                         <!--<Separator Margin="10,0,10,-15" Background="#424242" />-->
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsFriend}" Value="true">
+                            <Setter TargetName="Card" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

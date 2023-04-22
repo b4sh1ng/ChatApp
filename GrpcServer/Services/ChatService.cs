@@ -268,8 +268,6 @@ namespace GrpcServer.Services
                 else
                     friendId = friends.UserId1;
 
-
-
                 var friendDataRequest = await dbcontext.Usercredentials.Where(x => x.UserId == friendId).SingleAsync();
                 await responseStream.WriteAsync(new GetFriendDataResponse
                 {
@@ -281,6 +279,26 @@ namespace GrpcServer.Services
                     CurrentStatus = friendDataRequest.CurrentStatus,
                 });
             }
+        }
+        public override async Task<Empty> FriendRequesting(FriendRequest request, ServerCallContext context)
+        {
+            var friendRequest = await dbcontext.Friendlists.SingleOrDefaultAsync(x => x.UserId1 == request.UserId && x.UserId2 == request.FriendId);
+            if (request.IsAccepted == true)
+            {
+                if (friendRequest != null)
+                {
+                    friendRequest.IsFriend = true;
+                }
+            }
+            else
+            {
+                if (friendRequest != null)
+                {
+                    dbcontext.Friendlists.Remove(friendRequest);
+                }
+            }
+            dbcontext.SaveChanges();
+            return new Empty();
         }
     }
 }

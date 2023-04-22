@@ -8,11 +8,13 @@ using GrpcServer;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-
+using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace ChatClient.ViewModels;
 
@@ -25,6 +27,7 @@ public partial class MainView : BaseView
     public Chat.ChatClient client { get; } = new Chat.ChatClient(Channel);
 
     private TaskCompletionSource<bool>? taskCompletion;
+
     [ObservableProperty]
     private int userId;
     [ObservableProperty]
@@ -49,11 +52,11 @@ public partial class MainView : BaseView
 
         Task.Run(async () =>
         {
-            Chats = await GetUserChats(client);
-            FriendList = await GetFriendListData(client);
+            await GetUserChats(client);
+            await GetFriendListData(client);
             SelectedView = new FriendsView(FriendList);
-            await Subscribe(client, UserId);
         });
+        Application.Current.MainWindow.Loaded += Starting;
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
@@ -96,15 +99,60 @@ public partial class MainView : BaseView
             .Where(x => x.ChatId == chatId)
             .Single(), client, UserId);
     }
+    [RelayCommand]
+    private async void AcceptFriend(int friendId)
+    {
+        await client.FriendRequestingAsync(new FriendRequest { UserId = userId, FriendId = friendId, IsAccepted = true });
+        FriendList.SingleOrDefault(x => x.FriendId == friendId).IsFriend = true;
+
+    }
+    [RelayCommand]
+    private async void DenyFriend(int friendId)
+    {
+        await client.FriendRequestingAsync(new FriendRequest { UserId = userId, FriendId = friendId, IsAccepted = false });
+        var toRemove = FriendList?.FirstOrDefault(f => f.FriendId == friendId);
+        if (toRemove != null)
+        {
+            FriendList?.Remove(toRemove);
+        }
+    }
+    [RelayCommand]
+    private void OpenUserContextMenu(Button button)
+    {        
+        if (button != null)
+        {
+            button.ContextMenu.IsOpen = true;
+        }
+    }
+    [RelayCommand]
+    private void SetStatusOnline()
+    {
+
+    }
+    [RelayCommand]
+    private void SetStatusBusy()
+    {
+
+    }
+    [RelayCommand]
+    private void SetStatusInvisible()
+    {
+
+    }
+    [RelayCommand]
+    private void Logout()
+    {
+        Application.Current.Shutdown();
+    }
     private async Task Subscribe(Chat.ChatClient client, int chatId)
     {
         var sub = client.Subscribe(new Request { Id = UserId });
 
         try
         {
-            await foreach (var x in sub.ResponseStream.ReadAllAsync())
+            await foreach (var response in sub.ResponseStream.ReadAllAsync())
             {
-                ProcessResponseMessage(sub.ResponseStream.Current);
+                ProcessResponseMessage(response);
             }
         }
         catch (Exception ex)
@@ -113,83 +161,120 @@ public partial class MainView : BaseView
         }
         await client.UnsubscribeAsync(new Request { Id = chatId });
     }
-    private async Task Unsubscribe(Chat.ChatClient client, int chatId)
+    private Task Unsubscribe(Chat.ChatClient client, int chatId)
     {
-        await client.UnsubscribeAsync(new Request { Id = chatId });
+        client.UnsubscribeAsync(new Request { Id = chatId });
+        return Task.CompletedTask;
     }
     private Task GetUserData(Chat.ChatClient client)
     {
-        var response = client.GetUserData(new Login
+        try
         {
-            LoginMail = "Bash",
-            Password = "test",
-        });
-        UserId = response.MyUserid;
-        Username = response.MyUsername;
-        UserImageSource = response.MyProfileImgB64;
-        UsernameId = $"#{response.MyUsernameId}";
+            var response = client.GetUserData(new Login
+            {
+                LoginMail = "Bash",
+                Password = "test",
+            });
+            UserId = response.MyUserid;
+            Username = response.MyUsername;
+            UserImageSource = response.MyProfileImgB64;
+            UsernameId = $"#{response.MyUsernameId}";
+
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
         return Task.CompletedTask;
     }
-    private async Task<ObservableCollection<ChatModel>> GetUserChats(Chat.ChatClient client)
+    private async Task GetUserChats(Chat.ChatClient client)
     {
-        var chatList = new ObservableCollection<ChatModel>();
         var response = client.GetUserChats(new Request { Id = UserId });
-        await foreach (var chat in response.ResponseStream.ReadAllAsync())
+        try
         {
-            chatList.Add(new ChatModel
+            await foreach (var chat in response.ResponseStream.ReadAllAsync())
             {
-                ChatName = chat.ChatName,
-                ChatId = chat.ChatId,
-                Messages = await GetChatDataFromChatId(client, chat.ChatId),
-                ImageSource = chat.ChatImgB64,
-                IsChatListed = chat.IsListed,
-            });
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Chats.Add(new ChatModel
+                    {
+                        ChatName = chat.ChatName,
+                        ChatId = chat.ChatId,
+                        ImageSource = chat.ChatImgB64,
+                        IsChatListed = chat.IsListed,
+                    });
+                });
+                await GetChatDataFromChatId(client, chat.ChatId);
+            }
         }
-        return chatList;
-    }
-    private async Task<ObservableCollection<MessageModel>> GetChatDataFromChatId(Chat.ChatClient client, int chatId)
-    {
-        var messageList = new ObservableCollection<MessageModel>();
-        var request = client.GetChatData(new Request { Id = chatId });
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
 
-        await foreach (var message in request.ResponseStream.ReadAllAsync())
-        {
-            messageList.Add(new MessageModel
-            {
-                Username = message.Username,
-                ImageSource = message.ImageSource,
-                FromId = message.FromId,
-                Message = message.Text,
-                Time = DateTimeOffset.FromUnixTimeSeconds(message.Time).DateTime,
-                IsEdited = message.IsEdited,
-                IsRead = message.IsRead,
-            });
-        }
-        var subMessageList = new ObservableCollection<MessageModel>(messageList.OrderBy(x => x.Time));
-        return subMessageList;
     }
-    private async Task<ObservableCollection<FriendModel>> GetFriendListData(Chat.ChatClient client)
+    private async Task GetChatDataFromChatId(Chat.ChatClient client, int chatId)
     {
-        var friendList = new ObservableCollection<FriendModel>();
+        var request = client.GetChatData(new Request { Id = chatId });
+        try
+        {
+            await foreach (var message in request.ResponseStream.ReadAllAsync())
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Chats?.Single(x => x.ChatId == chatId).Messages?.Add(new MessageModel
+                    {
+                        Username = message.Username,
+                        ImageSource = message.ImageSource,
+                        FromId = message.FromId,
+                        Message = message.Text,
+                        Time = DateTimeOffset.FromUnixTimeSeconds(message.Time).DateTime,
+                        IsEdited = message.IsEdited,
+                        IsRead = message.IsRead,
+                    });
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+
+    }
+    private async Task GetFriendListData(Chat.ChatClient client)
+    {
+        // var friendList = new ObservableCollection<FriendModel>();
         var response = client.GetUserFriends(new Request { Id = UserId });
-        await foreach (var friend in response.ResponseStream.ReadAllAsync())
+        try
         {
-            friendList.Add(new FriendModel
+            await foreach (var friend in response.ResponseStream.ReadAllAsync())
             {
-                FriendId = friend.FriendId,
-                ImageSource = friend.FriendImgB64,
-                Username = friend.FriendUsername,
-                UsernameId = friend.FriendUserId,
-                IsFriend = friend.IsFriend,
-                CurrentStatus = friend.CurrentStatus,
-            });
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    FriendList.Add(new FriendModel
+                    {
+                        FriendId = friend.FriendId,
+                        ImageSource = friend.FriendImgB64,
+                        Username = friend.FriendUsername,
+                        UsernameId = friend.FriendUserId,
+                        IsFriend = friend.IsFriend,
+                        CurrentStatus = friend.CurrentStatus,
+                    });
+                });
+            }
         }
-        return friendList;
+        catch (Exception ex)
+        {
+            MessageBox.Show($"{ex.Message}");
+        }
+        //return friendList;
     }
-    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
-#pragma warning disable CS4014 // Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt.
-        Unsubscribe(client, UserId);
-#pragma warning restore CS4014 // Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt.
+        Unsubscribe(client, UserId).Wait();
+    }
+    private void Starting(object? sender, EventArgs e)
+    {
+        Task.Run(async () => { await Subscribe(client, UserId); });
     }
 }

@@ -19,17 +19,19 @@
                 <ResourceDictionary Source="./Styles/ChatCard.xaml" />
                 <ResourceDictionary Source="./Styles/ChatContent.xaml" />
                 <ResourceDictionary Source="./Styles/ChatInputBox.xaml" />
+                <ResourceDictionary Source="./Styles/FriendInputBox.xaml" />
                 <ResourceDictionary Source="./Styles/StylishScrollbar.xaml" />
                 <ResourceDictionary Source="./Styles/FriendsNavButton.xaml" />
+                <ResourceDictionary Source="./Styles/UserButton.xaml" />
                 <ResourceDictionary Source="./Styles/FriendsButtons.xaml" />
                 <ResourceDictionary Source="./Styles/FriendsRoundButtons.xaml" />
                 <ResourceDictionary Source="./Styles/FriendsCard.xaml" />
                 <ResourceDictionary Source="./Styles/FriendsRequestCard.xaml" />
                 <ResourceDictionary Source="./Styles/BorderHover.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <DataTemplate DataType="{x:Type viewmodels:SettingsView}">
+            <!--<DataTemplate DataType="{x:Type viewmodels:SettingsView}">
                 <views:SettingsWindow />
-            </DataTemplate>
+            </DataTemplate>-->
             <DataTemplate DataType="{x:Type viewmodels:ChatView}">
                 <views:ChatWindow />
             </DataTemplate>
