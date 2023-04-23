@@ -4,8 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-    xmlns:linq="clr-namespace:System.Linq;assembly=System.Core"
-    xmlns:local="clr-namespace:ChatClient"
+    xmlns:local="clr-namespace:ChatClient.Models"
     xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
@@ -27,7 +26,6 @@
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
     </Window.Resources>
-
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands>
             <Button>
@@ -86,9 +84,9 @@
                 <Button
                     Height="50"
                     Margin="10,0,0,0"
-                    Command="{Binding OpenUserContextMenuCommand}"
-                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                    Style="{StaticResource UserButton}" Cursor="Hand">
+                    local:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True"
+                    Cursor="Hand"
+                    Style="{StaticResource UserButton}">
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                         <Ellipse
                             Width="40"
@@ -108,7 +106,7 @@
                             Width="10"
                             Height="10"
                             Margin="-10,25,0,0"
-                            Background="Green"
+                            Background="{Binding UserStatus}"
                             CornerRadius="7" />
                         <StackPanel>
                             <Label
@@ -124,15 +122,23 @@
                     </StackPanel>
                     <Button.ContextMenu>
                         <ContextMenu FlowDirection="LeftToRight" StaysOpen="true">
-                            <MenuItem Header="Online" Command="{Binding SetStatusOnlineCommand}" />
-                            <MenuItem Header="Busy" Command="{Binding SetStatusBusyCommand}"/>
-                            <MenuItem Header="Invisible" Command="{Binding SetStatusInvisibleCommand}"/>
+                            <MenuItem
+                                Command="{Binding SetStatusCommand}"
+                                CommandParameter="online"
+                                Header="Online" />
+                            <MenuItem
+                                Command="{Binding SetStatusCommand}"
+                                CommandParameter="busy"
+                                Header="Busy" />
+                            <MenuItem
+                                Command="{Binding SetStatusCommand}"
+                                CommandParameter="invisible"
+                                Header="Invisible" />
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
                 <DockPanel Width="134" HorizontalAlignment="Right">
                     <Button
-                        ToolTip="Logout"
                         Width="30"
                         Height="30"
                         Margin="0,0,10,0"
@@ -140,7 +146,8 @@
                         Command="{Binding LogoutCommand}"
                         CommandParameter="settings"
                         Cursor="Hand"
-                        Style="{StaticResource UserButton}">
+                        Style="{StaticResource UserButton}"
+                        ToolTip="Logout">
                         <iconPacks:PackIconFontAwesome
                             Width="18"
                             Height="18"

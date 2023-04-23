@@ -103,10 +103,49 @@ namespace GrpcServer.Services
             dbcontext.SaveChangesAsync().Wait();
             return Task.FromResult(new Empty());
         }
+        public override async Task<Empty> PostNewStatus(NewUserStatus request, ServerCallContext context)
+        {
+            //change status from request, add message to buffer to send to all users he is befriended
+            var statusRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
+            if (statusRequest != null && statusRequest.LastStatus != request.UserStatus)
+            {
+                statusRequest.LastStatus = request.UserStatus;
+                statusRequest.CurrentStatus = request.UserStatus;
+                logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Ändere Status von User {request.UserId} zu Status: {request.UserStatus}");
+
+                await dbcontext.SaveChangesAsync();
+                var friendRequest = await dbcontext.Friendlists
+                    .Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId)
+                    .ToListAsync();
+                foreach (var friends in friendRequest)
+                {
+                    int friendId;
+                    if (friends.UserId1 == request.UserId)
+                        friendId = friends.UserId2;
+                    else
+                        friendId = friends.UserId1;
+
+                    if (subscribers.ContainsKey(friendId))
+                    {
+                        buffer.Post(new SubscriberResponse()
+                        {
+                            MessageType = 4,
+                            ToId = friendId,
+                            NewUserStatus = new NewUserStatus()
+                            {
+                                UserId = request.UserId,
+                                UserStatus = statusRequest.CurrentStatus,
+                            }
+                        });
+                    }
+                }
+            }
+            return new Empty();
+        }
         public override async Task<UserDataResponse> GetUserData(Login request, ServerCallContext context)
         {
             // Später Login Kontrolle + JWT Token hinzufügen
-            var DbRequest = dbcontext.Usercredentials.FirstOrDefault(x => x.Username == request.LoginMail);
+            var DbRequest = await dbcontext.Usercredentials.FirstOrDefaultAsync(x => x.Username == request.LoginMail);
             logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Daten gesendet: {DbRequest.Username}");
             var response = (new UserDataResponse
             {
@@ -114,6 +153,7 @@ namespace GrpcServer.Services
                 MyUsername = DbRequest.Username,
                 MyUsernameId = DbRequest.UsernameId,
                 MyProfileImgB64 = DbRequest.ProfileImgB64,
+                MyUserStatus = DbRequest.LastStatus,
             });
             return response;
         }

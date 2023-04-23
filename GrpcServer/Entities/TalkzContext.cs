@@ -109,9 +109,13 @@ public partial class TalkzContext : DbContext
                 .HasColumnName("usernameId");
             entity.Property(e => e.CurrentStatus)
                 .HasDefaultValueSql("0")
+                .HasColumnType("int(11)")
                 .HasColumnName("currentStatus");
+            entity.Property(e => e.LastStatus)
+                .HasDefaultValueSql("1")
+                .HasColumnType("int(11)")
+                .HasColumnName("lastStatus");
         });
-
         OnModelCreatingPartial(modelBuilder);
     }
 

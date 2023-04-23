@@ -4,7 +4,6 @@
     xmlns:local="clr-namespace:ChatClient.Converter">
     <local:Base64ImageConverter x:Key="Base64ImageConverter" />
 
-
     <Style x:Key="ChatCard" TargetType="ListViewItem">
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
@@ -64,5 +63,4 @@
             </Setter.Value>
         </Setter>
     </Style>
-
 </ResourceDictionary>

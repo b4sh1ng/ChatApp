@@ -16,4 +16,5 @@ public partial class Usercredential
     public string? ProfileImgB64 { get; set; }
     
     public int CurrentStatus { get; set; }
+    public int LastStatus { get; set; }
 }

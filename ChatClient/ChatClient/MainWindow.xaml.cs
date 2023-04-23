@@ -25,5 +25,9 @@ namespace ChatClient
             InitializeComponent();
         }
 
+        private void Button_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+
+        }
     }
 }

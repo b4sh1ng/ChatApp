@@ -16,7 +16,8 @@ namespace ChatClient.Models
         public int ChatId { get; set; }
         public string? ImageSource { get; set; }
         public ObservableCollection<MessageModel>? Messages { get; set; }
-        // public byte CurrentStatus { get; set; }
+        [ObservableProperty]
+        private int currentStatus;
         [ObservableProperty]
         private bool isChatListed;
         // public bool IsGroupChat { get; set; }
@@ -24,7 +25,7 @@ namespace ChatClient.Models
         private DateTime? latestMessageTime;
 
         public ChatModel()
-        {            
+        {
             Messages = new();
             Messages.CollectionChanged += (sender, args) =>
             {

@@ -1,4 +1,5 @@
-﻿using ChatClient.Models;
+﻿using ChatClient.Enums;
+using ChatClient.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Google.Protobuf.WellKnownTypes;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace ChatClient.ViewModels;
 
@@ -25,7 +27,6 @@ public partial class MainView : BaseView
     public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
     public Chat.ChatClient client { get; } = new Chat.ChatClient(Channel);
-
     private TaskCompletionSource<bool>? taskCompletion;
 
     [ObservableProperty]
@@ -41,12 +42,15 @@ public partial class MainView : BaseView
     [ObservableProperty]
     private static ChatModel? selectedChat;
     [ObservableProperty]
-    public string? message;
+    private string? message;
     [ObservableProperty]
-    public string? userImageSource;
+    private string? userImageSource;
+    [ObservableProperty]
+    private SolidColorBrush userStatus;
     public MainView()
     {
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
+        //UserStatus = StatusEnumHandler.GetStatusColor(State.Invisible);
         FriendsIsSelected = true;
         GetUserData(client).Wait();
 
@@ -55,8 +59,9 @@ public partial class MainView : BaseView
             await GetUserChats(client);
             await GetFriendListData(client);
             SelectedView = new FriendsView(FriendList);
+            await Subscribe(client, UserId);
         });
-        Application.Current.MainWindow.Loaded += Starting;
+        //Application.Current.MainWindow.Loaded += Starting;
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
@@ -102,42 +107,36 @@ public partial class MainView : BaseView
     [RelayCommand]
     private async void AcceptFriend(int friendId)
     {
-        await client.FriendRequestingAsync(new FriendRequest { UserId = userId, FriendId = friendId, IsAccepted = true });
+        await client.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = true });
         FriendList.SingleOrDefault(x => x.FriendId == friendId).IsFriend = true;
 
     }
     [RelayCommand]
     private async void DenyFriend(int friendId)
     {
-        await client.FriendRequestingAsync(new FriendRequest { UserId = userId, FriendId = friendId, IsAccepted = false });
+        await client.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = false });
         var toRemove = FriendList?.FirstOrDefault(f => f.FriendId == friendId);
         if (toRemove != null)
         {
             FriendList?.Remove(toRemove);
         }
     }
+
     [RelayCommand]
-    private void OpenUserContextMenu(Button button)
-    {        
-        if (button != null)
+    private void SetStatus(string parameter)
+    {
+        var status = parameter switch
         {
-            button.ContextMenu.IsOpen = true;
-        }
-    }
-    [RelayCommand]
-    private void SetStatusOnline()
-    {
-
-    }
-    [RelayCommand]
-    private void SetStatusBusy()
-    {
-
-    }
-    [RelayCommand]
-    private void SetStatusInvisible()
-    {
-
+            "online" => 1,
+            "busy" => 2,
+            "invisible" => 3,
+            _ => 1,
+        };
+        client.PostNewStatus(new NewUserStatus { 
+            UserStatus = status,
+            UserId = UserId,
+        });
+        UserStatus = StatusEnumHandler.GetStatusColor((State)status);
     }
     [RelayCommand]
     private void Logout()
@@ -179,7 +178,7 @@ public partial class MainView : BaseView
             Username = response.MyUsername;
             UserImageSource = response.MyProfileImgB64;
             UsernameId = $"#{response.MyUsernameId}";
-
+            UserStatus = StatusEnumHandler.GetStatusColor((State)response.MyUserStatus);
         }
         catch (Exception ex)
         {
