@@ -16,9 +16,5 @@ namespace ChatClient.ViewModels.FriendsTabViewModels
         {
             
         }
-        public AddFriendsView(ObservableCollection<FriendModel>? friendList)
-        {
-            FriendList = friendList;
-        }
     }
 }

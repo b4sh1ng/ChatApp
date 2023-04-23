@@ -13,6 +13,8 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using GrpcServer;
 using System.Threading.Channels;
+using System.Windows.Media;
+using ChatClient.Enums;
 
 namespace ChatClient.ViewModels
 {
@@ -23,6 +25,8 @@ namespace ChatClient.ViewModels
         public Chat.ChatClient Client { get; set; }
         [ObservableProperty]
         private string? chatName;
+        [ObservableProperty]
+        private SolidColorBrush friendStatus;
 
         [ObservableProperty]
         private string? messageTo;
@@ -60,6 +64,7 @@ namespace ChatClient.ViewModels
                 chatId = chatModel.ChatId;
                 this.userId = userId;
                 Client = client;
+                FriendStatus = chatModel.CurrentStatus;
             }
         }
     }

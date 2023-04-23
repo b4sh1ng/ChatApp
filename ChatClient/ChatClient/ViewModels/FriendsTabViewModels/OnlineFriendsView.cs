@@ -1,4 +1,5 @@
-﻿using ChatClient.Models;
+﻿using ChatClient.Enums;
+using ChatClient.Models;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 
 namespace ChatClient.ViewModels.FriendsTabViewModels
 {
@@ -21,8 +23,20 @@ namespace ChatClient.ViewModels.FriendsTabViewModels
         }
         public OnlineFriendsView(ObservableCollection<FriendModel>? friendList)
         {
-            FriendList = new ObservableCollection<FriendModel>(friendList.Where(x => x.CurrentStatus > 0).ToList());
-            FriendCount = $"Online ~ {FriendList.Count}";
+            try
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    FriendList = new ObservableCollection<FriendModel>(friendList
+                    .Where(x => (x.CurrentStatus is SolidColorBrush solidColorBrush) && solidColorBrush.Color != Colors.Gray)
+                    .ToList());
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            FriendCount = $"Online ~ {FriendList?.Count}";
         }
     }
 }

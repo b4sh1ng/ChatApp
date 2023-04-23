@@ -142,18 +142,88 @@ namespace GrpcServer.Services
             }
             return new Empty();
         }
+        public override async Task<IsSuccess> PostFriendRequest(FriendRequestSearch request, ServerCallContext context)
+        {
+            int searchId;
+            string[] searchUser = request.SearchTerm.Split('#');
+            try
+            {
+                if (int.TryParse(searchUser[1], out int number))
+                {
+                    searchId = number;
+                }
+                else
+                {
+                    return new IsSuccess() { IsOk = false };
+                }
+            }
+            catch
+            {
+                return new IsSuccess() { IsOk = false };
+            }
+            var searchRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.Username == searchUser[0] && x.UsernameId == searchId);
+            if (searchRequest == null)
+            {
+                return new IsSuccess() { IsOk = false };
+            }
+            var getFriends = await dbcontext.Friendlists.Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId).ToListAsync();
+            Usercredential? requesterData = null;
+            foreach (var friend in getFriends)
+            {
+                int friendId;
+                if (friend.UserId1 == request.UserId)
+                    friendId = friend.UserId2;
+                else
+                    friendId = friend.UserId1;
+                if (friendId == searchRequest.UserId)
+                {
+                    return new IsSuccess() { IsOk = false };
+                }
+                requesterData = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
+                if (requesterData == null) return new IsSuccess() { IsOk = false };
+                logger.LogInformation("starte eintragung...");
+                if (friendId == searchRequest.UserId) return new IsSuccess() { IsOk = false };
+            }
+            await dbcontext.Friendlists.AddAsync(new Friendlist
+            {
+                IsFriend = false,
+                UserId1 = request.UserId,
+                UserId2 = searchRequest.UserId,
+            });
+            logger.LogInformation("ende eintragung...");
+            await dbcontext.SaveChangesAsync();
+            if (requesterData == null) return new IsSuccess() { IsOk = false };
+            buffer.Post(new SubscriberResponse()
+            {
+                MessageType = 3,
+                ToId = searchRequest.UserId,
+                NewRequest = new NewRequest()
+                {
+                    RequestData = new GetFriendDataResponse()
+                    {
+                        FriendId = requesterData.UserId,
+                        IsFriend = false,
+                        FriendImgB64 = requesterData.ProfileImgB64,
+                        FriendUsername = requesterData.Username,
+                        FriendUserId = requesterData.UsernameId,
+                    }
+                }
+            });
+
+            return new IsSuccess() { IsOk = true };
+        }
         public override async Task<UserDataResponse> GetUserData(Login request, ServerCallContext context)
         {
             // Später Login Kontrolle + JWT Token hinzufügen
-            var DbRequest = await dbcontext.Usercredentials.FirstOrDefaultAsync(x => x.Username == request.LoginMail);
-            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Daten gesendet: {DbRequest.Username}");
+            var userDataRequest = await dbcontext.Usercredentials.FirstOrDefaultAsync(x => x.Username == request.LoginMail);
+            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Daten gesendet: {userDataRequest?.Username}");
             var response = (new UserDataResponse
             {
-                MyUserid = DbRequest!.UserId,
-                MyUsername = DbRequest.Username,
-                MyUsernameId = DbRequest.UsernameId,
-                MyProfileImgB64 = DbRequest.ProfileImgB64,
-                MyUserStatus = DbRequest.LastStatus,
+                MyUserid = userDataRequest!.UserId,
+                MyUsername = userDataRequest.Username,
+                MyUsernameId = userDataRequest.UsernameId,
+                MyProfileImgB64 = userDataRequest.ProfileImgB64,
+                MyUserStatus = userDataRequest.LastStatus,
             });
             return response;
         }
@@ -172,6 +242,7 @@ namespace GrpcServer.Services
                             chats.IsListed,
                             B64Img = userdata.ProfileImgB64,
                             ChatName = userdata.Username,
+                            CurrentStatus = userdata.CurrentStatus,
                         };
 
             var result = await query.ToListAsync();
@@ -184,6 +255,7 @@ namespace GrpcServer.Services
                     IsListed = Convert.ToBoolean(await dbcontext.Chats.Where(x => x.UserId == request.Id).Where(x => x.ChatId == chats.ChatId).Select(x => x.IsListed).SingleAsync()),
                     ChatImgB64 = chats.B64Img,
                     ChatName = chats.ChatName,
+                    CurrentStatus = chats.CurrentStatus,
                 });
                 logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Information von ChatId {chats.ChatId} gesendet.");
             }
@@ -290,7 +362,6 @@ namespace GrpcServer.Services
             var chat = dbcontext.Chats.FirstOrDefault(x => x.ChatId == queryChatId && x.UserId == request.UserId);
             chat.IsListed = true;
             dbcontext.SaveChanges();
-
             return new NewChat() { ChatData = new GetChatDataResponse() { ChatId = queryChatId } };
         }
         public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
@@ -303,10 +374,12 @@ namespace GrpcServer.Services
             {
                 int friendId;
 
-                if (friends.UserId1 == request.Id)
+                if (friends.UserId1 == request.Id && friends.IsFriend == true)
                     friendId = friends.UserId2;
-                else
+                else if (friends.UserId2 == request.Id)
                     friendId = friends.UserId1;
+                else
+                    continue;
 
                 var friendDataRequest = await dbcontext.Usercredentials.Where(x => x.UserId == friendId).SingleAsync();
                 await responseStream.WriteAsync(new GetFriendDataResponse

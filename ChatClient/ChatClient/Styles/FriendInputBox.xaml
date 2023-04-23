@@ -19,10 +19,10 @@
                                 BorderThickness="0"
                                 CaretBrush="Gray"
                                 Foreground="White"
-                                Text="{Binding SearchTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{Binding DataContext.SearchTerm, RelativeSource={RelativeSource AncestorType={x:Type Window}}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextWrapping="Wrap">
                                 <TextBox.InputBindings>
-                                    <KeyBinding Key="Return" Command="{Binding TryFriendRequestCommand}" />
+                                    <KeyBinding Key="Return" Command="{Binding DataContext.TryFriendRequestCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding DataContext.SearchTerm , RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
                             <TextBlock

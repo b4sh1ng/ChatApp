@@ -32,7 +32,7 @@
             <Border
                 Width="10"
                 Height="10"
-                Background="Green"
+                Background="{Binding FriendStatus}"
                 CornerRadius="7" />
         </StackPanel>
         <Border

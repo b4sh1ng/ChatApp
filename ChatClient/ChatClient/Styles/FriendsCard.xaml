@@ -39,7 +39,7 @@
                                 Width="10"
                                 Height="10"
                                 Margin="-10,18,0,0"
-                                Background="Green"
+                                Background="{Binding CurrentStatus}"
                                 CornerRadius="7" />
                             <Label
                                 Margin="5,-5,0,0"

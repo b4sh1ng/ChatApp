@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace ChatClient.Models
 {
@@ -17,12 +18,12 @@ namespace ChatClient.Models
         public string? ImageSource { get; set; }
         public ObservableCollection<MessageModel>? Messages { get; set; }
         [ObservableProperty]
-        private int currentStatus;
+        private SolidColorBrush currentStatus;
         [ObservableProperty]
         private bool isChatListed;
-        // public bool IsGroupChat { get; set; }
         [ObservableProperty]
         private DateTime? latestMessageTime;
+        // public bool IsGroupChat { get; set; }
 
         public ChatModel()
         {

@@ -21,7 +21,7 @@
                 FontWeight="Bold" />
             <Label
                 Margin="15,0,0,0"
-                Content="Here you can add a friend with their Username#Id!"
+                Content="You can add a friend with their Username#Id!"
                 FontSize="12"
                 FontWeight="SemiBold" />
             <StackPanel Orientation="Horizontal">
@@ -34,8 +34,8 @@
                 <Button
                     Width="30"
                     Height="30"
-                    Command="{Binding TryFriendRequestCommand}"
-                    CommandParameter="{Binding SearchTerm}"
+                    Command="{Binding DataContext.TryFriendRequestCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                    CommandParameter="{Binding DataContext.SearchTerm, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
                     Style="{StaticResource FriendsRoundButton}">
                     <iconPacks:PackIconFontAwesome
                         Width="13"
@@ -48,9 +48,9 @@
                 <TextBlock
                     Margin="25,0,0,0"
                     VerticalAlignment="Center"
-                    Text="Username#Id nicht gefunden :("
                     FontWeight="Bold"
-                    Foreground="IndianRed"/>
+                    Foreground="{Binding DataContext.SearchAnswerColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                    Text="{Binding DataContext.SearchAnswer, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" />
             </Border>
         </StackPanel>
     </Grid>

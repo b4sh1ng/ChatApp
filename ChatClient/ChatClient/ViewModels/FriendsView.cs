@@ -39,7 +39,7 @@ namespace ChatClient.ViewModels
         private BaseView ViewSelector(string? parameter) => parameter switch
         {
             "all" => SelectedFriendsView = new AllFriendsView(FriendsList),
-            "add" => SelectedFriendsView = new AddFriendsView(FriendsList),
+            "add" => SelectedFriendsView = new AddFriendsView(),
             "online" => SelectedFriendsView = new OnlineFriendsView(FriendsList),
             "requests" => SelectedFriendsView = new RequestsFriendsView(FriendsList),
             _ => SelectedFriendsView = new OnlineFriendsView(FriendsList)

@@ -15,6 +15,7 @@ service Chat {
 	rpc PostNewStatus(NewUserStatus) returns (Empty);
 	rpc GetChatId(ChatRequest) returns (NewChat); // added
 	rpc FriendRequesting(FriendRequest) returns (Empty); // added
+	rpc PostFriendRequest(FriendRequestSearch) returns (IsSuccess);
 }
 
 message Empty {
@@ -23,6 +24,15 @@ message Empty {
 
 message Request {
 	int32 id = 1;
+}
+
+message IsSuccess {
+	bool isOk = 1;
+}
+
+message FriendRequestSearch {
+	int32 userId = 1;
+	string SearchTerm = 2;
 }
 message ChatRequest {
 	int32 userId = 1;
@@ -88,6 +98,7 @@ message GetChatDataResponse {
 	bool isListed = 2;
 	string chatImgB64 = 3;
 	string chatName = 4;
+	int32 currentStatus = 5;
 }
 
 message GetFriendDataResponse {

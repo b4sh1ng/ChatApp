@@ -47,6 +47,12 @@ public partial class MainView : BaseView
     private string? userImageSource;
     [ObservableProperty]
     private SolidColorBrush userStatus;
+    [ObservableProperty]
+    private string? searchTerm;
+    [ObservableProperty]
+    private string? searchAnswer;
+    [ObservableProperty]
+    private SolidColorBrush searchAnswerColor;
     public MainView()
     {
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
@@ -132,9 +138,10 @@ public partial class MainView : BaseView
             "invisible" => 3,
             _ => 1,
         };
-        client.PostNewStatus(new NewUserStatus { 
+        client.PostNewStatus(new NewUserStatus
+        {
             UserStatus = status,
-            UserId = UserId,
+            UserId = this.UserId,
         });
         UserStatus = StatusEnumHandler.GetStatusColor((State)status);
     }
@@ -142,6 +149,25 @@ public partial class MainView : BaseView
     private void Logout()
     {
         Application.Current.Shutdown();
+    }
+    [RelayCommand]
+    private void TryFriendRequest(string parameter)
+    {
+        var request = client.PostFriendRequest(new FriendRequestSearch
+        {
+            SearchTerm = parameter,
+            UserId = this.UserId
+        });
+        if(request.IsOk == false)
+        {
+            SearchAnswer = $"Folgenden Nutzer \"{parameter}\" nicht gefunden oder ist schon ein Freund. :o";
+            SearchAnswerColor = new SolidColorBrush(Colors.IndianRed);
+        }
+        else
+        {
+            SearchAnswer = $"Folgenden Nutzer \"{parameter}\" Anfrage geschickt! :)";
+            SearchAnswerColor = new SolidColorBrush(Colors.Green);
+        }
     }
     private async Task Subscribe(Chat.ChatClient client, int chatId)
     {
@@ -201,6 +227,7 @@ public partial class MainView : BaseView
                         ChatId = chat.ChatId,
                         ImageSource = chat.ChatImgB64,
                         IsChatListed = chat.IsListed,
+                        CurrentStatus = StatusEnumHandler.GetStatusColor((State)chat.CurrentStatus),
                     });
                 });
                 await GetChatDataFromChatId(client, chat.ChatId);
@@ -210,7 +237,6 @@ public partial class MainView : BaseView
         {
             MessageBox.Show(ex.Message);
         }
-
     }
     private async Task GetChatDataFromChatId(Chat.ChatClient client, int chatId)
     {
@@ -257,7 +283,7 @@ public partial class MainView : BaseView
                         Username = friend.FriendUsername,
                         UsernameId = friend.FriendUserId,
                         IsFriend = friend.IsFriend,
-                        CurrentStatus = friend.CurrentStatus,
+                        CurrentStatus = StatusEnumHandler.GetStatusColor((State)friend.CurrentStatus),
                     });
                 });
             }
