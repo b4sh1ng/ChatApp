@@ -9,5 +9,5 @@ public partial class Friendlist
 
     public int UserId2 { get; set; }
 
-    public bool? IsFriend { get; set; }    
+    public bool? IsFriend { get; set; }
 }

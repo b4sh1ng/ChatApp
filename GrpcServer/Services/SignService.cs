@@ -22,7 +22,7 @@ public class SignService : Sign.SignBase
     {
         var userEmail = request.Email;
         var userPasswordHash = request.PasswordHash;
-        var dbRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.Username == userEmail && x.Password == userPasswordHash);
+        var dbRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.Email == userEmail && x.Password == userPasswordHash);
         if (dbRequest is null)
         {
             return new SuccessMessage() { IsOk = false };
@@ -31,7 +31,12 @@ public class SignService : Sign.SignBase
         dbRequest.SessionId = sessionId;
 
         await dbcontext.SaveChangesAsync();
-        return new SuccessMessage() { IsOk = true, Session = sessionId };        
+        return new SuccessMessage()
+        {
+            IsOk = true,
+            Session = sessionId,
+            UserId = dbRequest.UserId
+        };
     }
     public override async Task<IsValid> LoginWithSession(SessionLogin request, ServerCallContext context)
     {
@@ -40,9 +45,10 @@ public class SignService : Sign.SignBase
         var dbRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == userId && x.SessionId == sessionId);
         if (dbRequest is null)
         {
+            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Sessionlogin von User {request.UserId} nicht erfolgreich!");
             return new IsValid() { IsOk = false };
         }
-        
+        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Sessionlogin von User {request.UserId} erfolgreich!");
         return new IsValid() { IsOk = true };
     }
 }

@@ -14,9 +14,12 @@ public partial class Usercredential
     public string Password { get; set; } = null!;
 
     public string? ProfileImgB64 { get; set; }
-    
+
     public int CurrentStatus { get; set; }
+
     public int LastStatus { get; set; }
+
     public string Email { get; set; } = null!;
-    public string SessionId { get; set; } = null!;
+
+    public string? SessionId { get; set; }
 }

@@ -31,6 +31,7 @@ message IsValid{
 message SuccessMessage{
 	bool isOk = 1;
 	string session = 2;
+	int32 userId =3;
 }
 
 message RegisterData{

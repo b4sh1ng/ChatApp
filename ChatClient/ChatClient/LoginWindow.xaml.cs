@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatClient.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,17 +11,16 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ChatClient
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaktionslogik für LoginWindow.xaml
     /// </summary>
-    public partial class MainWindow
+    public partial class LoginWindow 
     {
-        public MainWindow()
+        public LoginWindow()
         {
             InitializeComponent();
         }

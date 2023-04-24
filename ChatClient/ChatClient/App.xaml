@@ -6,7 +6,7 @@
     xmlns:viewmodels="clr-namespace:ChatClient.ViewModels"
     xmlns:viewmodelsFriends="clr-namespace:ChatClient.ViewModels.FriendsTabViewModels"
     xmlns:views="clr-namespace:ChatClient.Views"
-    StartupUri="MainWindow.xaml">
+    StartupUri="LoginWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <!--  MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive!  -->
@@ -15,7 +15,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <!--  Theme setting  -->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Mauve.xaml" />
-                <!--Custom Styles-->
+                <!--  Custom Styles  -->
                 <ResourceDictionary Source="./Styles/ChatCard.xaml" />
                 <ResourceDictionary Source="./Styles/ChatContent.xaml" />
                 <ResourceDictionary Source="./Styles/ChatInputBox.xaml" />
@@ -29,9 +29,6 @@
                 <ResourceDictionary Source="./Styles/FriendsRequestCard.xaml" />
                 <ResourceDictionary Source="./Styles/BorderHover.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <!--<DataTemplate DataType="{x:Type viewmodels:SettingsView}">
-                <views:SettingsWindow />
-            </DataTemplate>-->
             <DataTemplate DataType="{x:Type viewmodels:ChatView}">
                 <views:ChatWindow />
             </DataTemplate>

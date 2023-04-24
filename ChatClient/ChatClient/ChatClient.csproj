@@ -44,9 +44,6 @@
     <Page Update="Views\FriendTabViews\RequestsFriendsWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\SettingsWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
 
 </Project>

@@ -28,7 +28,8 @@ public partial class MainView : BaseView
     public static ObservableCollection<ChatModel>? Chats { get; set; } = new();
     public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
-    public Chat.ChatClient client { get; } = new Chat.ChatClient(Channel);
+    public Chat.ChatClient ChatClient { get; } = new Chat.ChatClient(Channel);
+    public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
     private TaskCompletionSource<bool>? taskCompletion;
 
     [ObservableProperty]
@@ -59,29 +60,30 @@ public partial class MainView : BaseView
     private SolidColorBrush searchAnswerColor;
     public MainView()
     {
-        if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
-        {
-            UserId = id;
-        }
+        //if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
+        //{
+        //    UserId = id;
+        //}
         SessionId = ConfigurationManager.AppSettings.Get("sessionId");
+        //var test = SignClient.LoginWithUsername(new LoginUser { Email = "test@test.de", PasswordHash = "test" });
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
         //UserStatus = StatusEnumHandler.GetStatusColor(State.Invisible);
         FriendsIsSelected = true;
-        GetUserData(client).Wait();
+        GetUserData(ChatClient).Wait();
 
         Task.Run(async () =>
         {
-            await GetUserChats(client);
-            await GetFriendListData(client);
+            await GetUserChats(ChatClient);
+            await GetFriendListData(ChatClient);
             SelectedView = new FriendsView(FriendList);
-            await Subscribe(client, UserId);
+            await Subscribe(ChatClient, UserId);
         });
-        //Application.Current.MainWindow.Loaded += Starting;
     }
+
     partial void OnSelectedChatChanged(ChatModel? value)
     {
         FriendsIsSelected = false;
-        SelectedView = new ChatView(value, client, UserId);
+        SelectedView = new ChatView(value, ChatClient, UserId);
     }
     [RelayCommand]
     private void ChangeView(string? parameter)
@@ -91,20 +93,13 @@ public partial class MainView : BaseView
             SelectedChat = null;
             SelectedView = new FriendsView(FriendList);
             FriendsIsSelected = true;
-        }
-        else if (parameter == "settings")
-        {
-            SelectedChat = null;
-            SelectedView = new SettingsView();
-            FriendsIsSelected = false;
-        }
-        // make a seperate method for swapping view
+        }        
     }
     [RelayCommand]
     private async void OpenChat(int friendId)
     {
         taskCompletion = new();
-        var response = client.GetChatId(new ChatRequest { UserId = UserId, FriendId = friendId });
+        var response = ChatClient.GetChatId(new ChatRequest { UserId = UserId, FriendId = friendId });
         var chatId = response.ChatData.ChatId;
         var isChatInList = Chats?.Where(x => x.ChatId == chatId).Select(x => x.ChatId).SingleOrDefault();
         if (isChatInList == 0)
@@ -117,26 +112,25 @@ public partial class MainView : BaseView
         updateChat.IsChatListed = true;
         SelectedView = new ChatView(Chats?
             .Where(x => x.ChatId == chatId)
-            .Single(), client, UserId);
+            .Single(), ChatClient, UserId);
     }
     [RelayCommand]
     private async void AcceptFriend(int friendId)
     {
-        await client.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = true });
+        await ChatClient.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = true });
         FriendList.SingleOrDefault(x => x.FriendId == friendId).IsFriend = true;
 
     }
     [RelayCommand]
     private async void DenyFriend(int friendId)
     {
-        await client.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = false });
+        await ChatClient.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = false });
         var toRemove = FriendList?.FirstOrDefault(f => f.FriendId == friendId);
         if (toRemove != null)
         {
             FriendList?.Remove(toRemove);
         }
     }
-
     [RelayCommand]
     private void SetStatus(string parameter)
     {
@@ -147,7 +141,7 @@ public partial class MainView : BaseView
             "invisible" => 3,
             _ => 1,
         };
-        client.PostNewStatus(new NewUserStatus
+        ChatClient.PostNewStatus(new NewUserStatus
         {
             UserStatus = status,
             UserId = this.UserId,
@@ -162,7 +156,7 @@ public partial class MainView : BaseView
     [RelayCommand]
     private void TryFriendRequest(string parameter)
     {
-        var request = client.PostFriendRequest(new FriendRequestSearch
+        var request = ChatClient.PostFriendRequest(new FriendRequestSearch
         {
             SearchTerm = parameter,
             UserId = this.UserId
@@ -305,10 +299,11 @@ public partial class MainView : BaseView
     }
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
-        Unsubscribe(client, UserId).Wait();
+        Unsubscribe(ChatClient, UserId).Wait();
     }
     private void Starting(object? sender, EventArgs e)
     {
-        Task.Run(async () => { await Subscribe(client, UserId); });
+        //Task.Run(async () => { await Subscribe(ChatClient, UserId); });
+        //Application.Current.Windows[0].Close();
     }
 }

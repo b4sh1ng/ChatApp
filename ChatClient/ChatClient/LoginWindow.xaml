@@ -1,0 +1,86 @@
+﻿<mah:MetroWindow
+    x:Class="ChatClient.LoginWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:ChatClient"
+    xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:self="clr-namespace:ChatClient.ViewModels"
+    Title="Login ChatClient"
+    Width="700"
+    Height="450"
+    MinWidth="700"
+    MinHeight="450"
+    MaxWidth="700"
+    MaxHeight="450"
+    Background="#222222"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+
+
+    <Window.DataContext>
+        <self:LoginView />
+    </Window.DataContext>
+    <mah:MetroWindow.LeftWindowCommands>
+        <mah:WindowCommands>
+            <Button>
+                <iconPacks:PackIconModern
+                    Width="22"
+                    Height="22"
+                    Kind="Chat" />
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.LeftWindowCommands>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="75" />
+            <RowDefinition Height="250" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+            <Label
+                Content="Login Email"
+                FontSize="14"
+                FontWeight="Bold" />
+            <TextBox
+                Width="300"
+                mah:ControlsHelper.CornerRadius="4"
+                mah:TextBoxHelper.ClearTextButton="True"
+                mah:TextBoxHelper.Watermark="Your E-Mail"
+                FontWeight="SemiBold"
+                Style="{StaticResource MahApps.Styles.TextBox.Button}"
+                Text="{Binding LoginEmail}" />
+            <Label
+                Margin="0,10,0,0"
+                Content="Password"
+                FontSize="14"
+                FontWeight="Bold" />
+            <PasswordBox
+                Name="Password"
+                Margin="0,0,0,0"
+                mah:ControlsHelper.CornerRadius="4"
+                mah:PasswordBoxHelper.CapsLockWarningToolTip="CAPS LOCK IS PRESSED AHHHHH!!!"
+                mah:TextBoxHelper.Watermark="Your Password"
+                Style="{StaticResource MahApps.Styles.PasswordBox.Button.Revealed}" />
+            <Button
+                Margin="0,40,0,0"
+                BorderBrush="Gray"
+                BorderThickness="1"
+                Command="{Binding LoginCommand}"
+                CommandParameter="{Binding ElementName=Password}"
+                Content="Sign In"
+                Style="{StaticResource UserButton}" />
+            <TextBox
+                Margin="0,20,0,0"
+                Background="Transparent"
+                BorderThickness="0"
+                Foreground="{Binding LoginMessageColor}"
+                Text="{Binding LoginMessage}" />
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>
