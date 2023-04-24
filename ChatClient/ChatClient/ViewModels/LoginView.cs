@@ -78,7 +78,7 @@ public partial class LoginView : BaseView
         {
             UserId = id;
         }
-        SessionId = ConfigurationManager.AppSettings.Get("sessionId");
+        SessionId = ConfigurationManager.AppSettings.Get("sessionId")!;
 
         if (string.IsNullOrEmpty(SessionId) || UserId == 0) return;
 
