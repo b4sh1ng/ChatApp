@@ -1,3 +1,1 @@
-# GrpcTalkz
-
-TalkzClient is just a TestClient for devs.
+Chat App Project with Client and Server
