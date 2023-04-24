@@ -115,6 +115,14 @@ public partial class TalkzContext : DbContext
                 .HasDefaultValueSql("1")
                 .HasColumnType("int(11)")
                 .HasColumnName("lastStatus");
+            entity.Property(e => e.Email)
+                .HasDefaultValueSql()
+                .HasColumnName("email")
+                .HasMaxLength(100);
+            entity.Property(e => e.SessionId)
+                .HasDefaultValueSql("null")
+                .HasColumnName("sessionId")
+                .HasMaxLength(255);
         });
         OnModelCreatingPartial(modelBuilder);
     }

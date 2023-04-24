@@ -17,4 +17,6 @@ public partial class Usercredential
     
     public int CurrentStatus { get; set; }
     public int LastStatus { get; set; }
+    public string Email { get; set; } = null!;
+    public string SessionId { get; set; } = null!;
 }
