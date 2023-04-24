@@ -6,6 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using GrpcServer;
+using GrpcLogin;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -17,6 +18,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Configuration;
 
 namespace ChatClient.ViewModels;
 
@@ -29,6 +31,8 @@ public partial class MainView : BaseView
     public Chat.ChatClient client { get; } = new Chat.ChatClient(Channel);
     private TaskCompletionSource<bool>? taskCompletion;
 
+    [ObservableProperty]
+    private string? sessionId;
     [ObservableProperty]
     private int userId;
     [ObservableProperty]
@@ -55,6 +59,11 @@ public partial class MainView : BaseView
     private SolidColorBrush searchAnswerColor;
     public MainView()
     {
+        if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
+        {
+            UserId = id;
+        }
+        SessionId = ConfigurationManager.AppSettings.Get("sessionId");
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
         //UserStatus = StatusEnumHandler.GetStatusColor(State.Invisible);
         FriendsIsSelected = true;
