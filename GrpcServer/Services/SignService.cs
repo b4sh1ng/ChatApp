@@ -51,4 +51,12 @@ public class SignService : Sign.SignBase
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Sessionlogin von User {request.UserId} erfolgreich!");
         return new IsValid() { IsOk = true };
     }
+    public override async Task<Empty> Logout(SessionLogin request, ServerCallContext context)
+    {
+        var sessionCheckRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest == null) return new Empty();
+        sessionCheckRequest.SessionId = "";
+        await dbcontext.SaveChangesAsync();
+        return new Empty();
+    }
 }

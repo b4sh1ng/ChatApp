@@ -7,15 +7,16 @@ package chat;
 service Chat {
 	rpc Subscribe(Request) returns (stream SubscriberResponse); // added
 	rpc Unsubscribe(Request) returns (Empty); // added
-	rpc GetUserData(Login) returns (UserDataResponse); // added
+	rpc GetUserData(Request) returns (UserDataResponse); // added
 	rpc GetUserFriends(Request) returns (stream GetFriendDataResponse); // added
 	rpc GetUserChats(Request) returns (stream GetChatDataResponse); // added
-	rpc GetChatData(Request) returns (stream MessageToChat); // added
+	rpc GetChatData(ChatDataRequest) returns (stream MessageToChat); // added
 	rpc PostMessage(Msg) returns (Empty); // added
 	rpc PostNewStatus(NewUserStatus) returns (Empty);
 	rpc GetChatId(ChatRequest) returns (NewChat); // added
 	rpc FriendRequesting(FriendRequest) returns (Empty); // added
 	rpc PostFriendRequest(FriendRequestSearch) returns (IsSuccess);
+	rpc DeleteFriend(FriendRequest) returns (IsSuccess);
 }
 
 message Empty {
@@ -23,7 +24,13 @@ message Empty {
 }
 
 message Request {
-	int32 id = 1;
+	string sessionId = 1;
+	int32 id = 2;
+}
+message ChatDataRequest {
+	string sessionId = 1;
+	int32 userId = 2;
+	int32 chatId = 3;
 }
 
 message IsSuccess {
@@ -33,15 +40,18 @@ message IsSuccess {
 message FriendRequestSearch {
 	int32 userId = 1;
 	string SearchTerm = 2;
+	string sessionId = 3;
 }
 message ChatRequest {
 	int32 userId = 1;
 	int32 friendId = 2;
+	string sessionId = 3;
 }
 message FriendRequest {
 	int32 userId = 1;
 	int32 friendId = 2;
 	bool isAccepted = 3;
+	string sessionId = 4;
 }
 
 message SubscriberResponse {
@@ -65,6 +75,7 @@ message NewMessage {
 	string imageSource = 4;
 	string text = 5;
 	int64 time = 6;
+	string sessionId = 7;
 }
 
 message NewRequest {
@@ -74,6 +85,7 @@ message NewRequest {
 message NewUserStatus {
 	int32 userId = 1;
 	int32 userStatus = 2;
+	string sessionId = 3;
 }
 
 message RemoveFriend {
@@ -114,6 +126,7 @@ message Msg {
 	int32 chatId = 1;
 	int32 fromId = 2;
 	string text = 3;	
+	string sessionId = 4;
 }
 
 message MessageToChat {

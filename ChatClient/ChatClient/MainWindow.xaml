@@ -85,6 +85,7 @@
                     Height="50"
                     Margin="10,0,0,0"
                     local:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True"
+                    BorderThickness="0"
                     Cursor="Hand"
                     Style="{StaticResource UserButton}">
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
@@ -143,6 +144,7 @@
                         Height="30"
                         Margin="0,0,10,0"
                         HorizontalAlignment="Right"
+                        BorderThickness="0"
                         Command="{Binding LogoutCommand}"
                         CommandParameter="settings"
                         Cursor="Hand"

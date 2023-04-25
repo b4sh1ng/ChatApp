@@ -1,22 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GrpcLogin;
-using System.Windows;
 using Grpc.Net.Client;
-using GrpcServer;
+using GrpcLogin;
+using System;
 using System.Configuration;
+using System.Windows;
 using System.Windows.Media;
 
 namespace ChatClient.ViewModels;
 
 public partial class LoginView : BaseView
 {
-    public Action CloseAction { get; set; }
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
     public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
     [ObservableProperty]
@@ -36,6 +30,11 @@ public partial class LoginView : BaseView
         var password = passwordbox?.Password;
         passwordbox?.Clear();
         SuccessMessage? loginTry;
+        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(LoginEmail))
+        {
+            LoginMessage = "E-Mail and Password as to be filled in!";
+            return;
+        }
         try
         {
             loginTry = SignClient.LoginWithUsername(new LoginUser
@@ -46,6 +45,7 @@ public partial class LoginView : BaseView
         }
         catch
         {
+            LoginMessage = "Server not Online or reachable!";
             return;
         }
 
@@ -53,67 +53,53 @@ public partial class LoginView : BaseView
         {
             SetSettings(loginTry.UserId, loginTry.Session);
             SwitchView();
+            Application.Current.MainWindow.Close();
         }
         else
         {
-            LoginMessage = $"Login mit der E-Mail: {LoginEmail} nicht erfolgreich!";
+            LoginMessage = $"Login with E-Mail \"{LoginEmail}\" not successful!";
             LoginMessageColor = new(Colors.IndianRed);
         }
     }
     public LoginView()
     {
         App.Current.MainWindow.Loaded += StartupSequence;
-        
-
-        
     }
 
     private void StartupSequence(object? sender, EventArgs e)
     {
-        TryAutoLogin();
-    }
-    public void TryAutoLogin()
-    {
+        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
         if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
         {
             UserId = id;
         }
-        SessionId = ConfigurationManager.AppSettings.Get("sessionId")!;
-
-        if (string.IsNullOrEmpty(SessionId) || UserId == 0) return;
-
-        var loginTry = SignClient.LoginWithSession(new SessionLogin
+        SessionId = config.AppSettings.Settings["sessionId"].Value;
+        if (UserId != 0 || !string.IsNullOrEmpty(SessionId))
         {
-            SessionId = this.SessionId,
-            UserId = this.UserId,
-        });
-
-        if (loginTry.IsOk)
-        {
-            SwitchView();
-            return;
+            LoginMessage = "Session invalid or expired! Please Sign in.";
+            SetSettings();
         }
-        LoginMessage = "Session invalid! Please Sign in.";
-        LoginMessageColor = new(Colors.IndianRed);
-        SetSettings();
     }
+
     public void SwitchView()
     {
         var window = new MainWindow();
         window.Show();
+    }
+    private void SetSettings(int userId, string sessionId)
+    {
+        ConfigurationManager.AppSettings.Set("userId", Convert.ToString(userId));
+        ConfigurationManager.AppSettings.Set("sessionId", sessionId);
+        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        config.AppSettings.Settings["userId"].Value = Convert.ToString(userId);
+        config.AppSettings.Settings["sessionId"].Value = sessionId;
+        config.Save(ConfigurationSaveMode.Full, true);
     }
     private void SetSettings()
     {
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
         config.AppSettings.Settings["userId"].Value = "";
         config.AppSettings.Settings["sessionId"].Value = "";
-        config.Save(ConfigurationSaveMode.Full, true);
-    }
-    private void SetSettings(int userId, string sessionId)
-    {
-        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-        config.AppSettings.Settings["userId"].Value = Convert.ToString(userId);
-        config.AppSettings.Settings["sessionId"].Value = sessionId;
         config.Save(ConfigurationSaveMode.Full, true);
     }
 }

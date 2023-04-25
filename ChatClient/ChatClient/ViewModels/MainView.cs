@@ -60,17 +60,15 @@ public partial class MainView : BaseView
     private SolidColorBrush searchAnswerColor;
     public MainView()
     {
-        //if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
-        //{
-        //    UserId = id;
-        //}
-        SessionId = ConfigurationManager.AppSettings.Get("sessionId");
-        //var test = SignClient.LoginWithUsername(new LoginUser { Email = "test@test.de", PasswordHash = "test" });
+        Application.Current.MainWindow.Loaded += Starting;
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
-        //UserStatus = StatusEnumHandler.GetStatusColor(State.Invisible);
+        if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
+        {
+            UserId = id;
+        }
+        SessionId = ConfigurationManager.AppSettings.Get("sessionId");
         FriendsIsSelected = true;
         GetUserData(ChatClient).Wait();
-
         Task.Run(async () =>
         {
             await GetUserChats(ChatClient);
@@ -79,11 +77,10 @@ public partial class MainView : BaseView
             await Subscribe(ChatClient, UserId);
         });
     }
-
     partial void OnSelectedChatChanged(ChatModel? value)
     {
         FriendsIsSelected = false;
-        SelectedView = new ChatView(value, ChatClient, UserId);
+        SelectedView = new ChatView(value, ChatClient, UserId, SessionId);
     }
     [RelayCommand]
     private void ChangeView(string? parameter)
@@ -93,13 +90,18 @@ public partial class MainView : BaseView
             SelectedChat = null;
             SelectedView = new FriendsView(FriendList);
             FriendsIsSelected = true;
-        }        
+        }
     }
     [RelayCommand]
     private async void OpenChat(int friendId)
     {
         taskCompletion = new();
-        var response = ChatClient.GetChatId(new ChatRequest { UserId = UserId, FriendId = friendId });
+        var response = ChatClient.GetChatId(new ChatRequest
+        {
+            UserId = UserId,
+            FriendId = friendId,
+            SessionId = this.SessionId
+        });
         var chatId = response.ChatData.ChatId;
         var isChatInList = Chats?.Where(x => x.ChatId == chatId).Select(x => x.ChatId).SingleOrDefault();
         if (isChatInList == 0)
@@ -112,21 +114,48 @@ public partial class MainView : BaseView
         updateChat.IsChatListed = true;
         SelectedView = new ChatView(Chats?
             .Where(x => x.ChatId == chatId)
-            .Single(), ChatClient, UserId);
+            .Single(), ChatClient, UserId, SessionId);
     }
     [RelayCommand]
     private async void AcceptFriend(int friendId)
     {
-        await ChatClient.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = true });
+        await ChatClient.FriendRequestingAsync(new FriendRequest
+        {
+            UserId = UserId,
+            FriendId = friendId,
+            IsAccepted = true,
+            SessionId = this.SessionId
+        });
         FriendList.SingleOrDefault(x => x.FriendId == friendId).IsFriend = true;
 
     }
     [RelayCommand]
     private async void DenyFriend(int friendId)
     {
-        await ChatClient.FriendRequestingAsync(new FriendRequest { UserId = UserId, FriendId = friendId, IsAccepted = false });
+        await ChatClient.FriendRequestingAsync(new FriendRequest
+        {
+            UserId = UserId,
+            FriendId = friendId,
+            IsAccepted = false,
+            SessionId = this.SessionId
+        });
         var toRemove = FriendList?.FirstOrDefault(f => f.FriendId == friendId);
         if (toRemove != null)
+        {
+            FriendList?.Remove(toRemove);
+        }
+    }
+    [RelayCommand]
+    private async void RemoveFriend(int friendId)
+    {
+        var deleteRequest = await ChatClient.DeleteFriendAsync(new FriendRequest
+        {
+            SessionId = this.SessionId,
+            UserId = this.UserId,
+            FriendId = friendId,
+        });
+        var toRemove = FriendList?.FirstOrDefault(f => f.FriendId == friendId);
+        if (deleteRequest.IsOk && toRemove != null)
         {
             FriendList?.Remove(toRemove);
         }
@@ -145,12 +174,22 @@ public partial class MainView : BaseView
         {
             UserStatus = status,
             UserId = this.UserId,
+            SessionId = this.SessionId,
         });
         UserStatus = StatusEnumHandler.GetStatusColor((State)status);
     }
     [RelayCommand]
     private void Logout()
     {
+        SignClient.Logout(new SessionLogin
+        {
+            SessionId = SessionId,
+            UserId = this.UserId
+        });
+        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        config.AppSettings.Settings["userId"].Value = "";
+        config.AppSettings.Settings["sessionId"].Value = "";
+        config.Save(ConfigurationSaveMode.Full, true);
         Application.Current.Shutdown();
     }
     [RelayCommand]
@@ -159,9 +198,10 @@ public partial class MainView : BaseView
         var request = ChatClient.PostFriendRequest(new FriendRequestSearch
         {
             SearchTerm = parameter,
-            UserId = this.UserId
+            UserId = this.UserId,
+            SessionId = this.SessionId,
         });
-        if(request.IsOk == false)
+        if (request.IsOk == false)
         {
             SearchAnswer = $"Folgenden Nutzer \"{parameter}\" nicht gefunden oder ist schon ein Freund. :o";
             SearchAnswerColor = new SolidColorBrush(Colors.IndianRed);
@@ -174,7 +214,11 @@ public partial class MainView : BaseView
     }
     private async Task Subscribe(Chat.ChatClient client, int chatId)
     {
-        var sub = client.Subscribe(new Request { Id = UserId });
+        var sub = client.Subscribe(new Request
+        {
+            Id = UserId,
+            SessionId = this.SessionId
+        });
 
         try
         {
@@ -189,21 +233,24 @@ public partial class MainView : BaseView
         }
         await client.UnsubscribeAsync(new Request { Id = chatId });
     }
-    private Task Unsubscribe(Chat.ChatClient client, int chatId)
+    private Task Unsubscribe(Chat.ChatClient client, int userId)
     {
-        client.UnsubscribeAsync(new Request { Id = chatId });
+        client.UnsubscribeAsync(new Request
+        {
+            Id = userId,
+            SessionId = this.SessionId
+        });
         return Task.CompletedTask;
     }
     private Task GetUserData(Chat.ChatClient client)
     {
         try
         {
-            var response = client.GetUserData(new Login
+            var response = client.GetUserData(new Request
             {
-                LoginMail = "Bash",
-                Password = "test",
+                SessionId = this.SessionId,
+                Id = UserId,
             });
-            UserId = response.MyUserid;
             Username = response.MyUsername;
             UserImageSource = response.MyProfileImgB64;
             UsernameId = $"#{response.MyUsernameId}";
@@ -217,7 +264,11 @@ public partial class MainView : BaseView
     }
     private async Task GetUserChats(Chat.ChatClient client)
     {
-        var response = client.GetUserChats(new Request { Id = UserId });
+        var response = client.GetUserChats(new Request
+        {
+            Id = UserId,
+            SessionId = this.SessionId
+        });
         try
         {
             await foreach (var chat in response.ResponseStream.ReadAllAsync())
@@ -243,7 +294,12 @@ public partial class MainView : BaseView
     }
     private async Task GetChatDataFromChatId(Chat.ChatClient client, int chatId)
     {
-        var request = client.GetChatData(new Request { Id = chatId });
+        var request = client.GetChatData(new ChatDataRequest
+        {
+            ChatId = chatId,
+            UserId = this.UserId,
+            SessionId = this.SessionId
+        });
         try
         {
             await foreach (var message in request.ResponseStream.ReadAllAsync())
@@ -267,12 +323,15 @@ public partial class MainView : BaseView
         {
             MessageBox.Show(ex.Message);
         }
-
     }
     private async Task GetFriendListData(Chat.ChatClient client)
     {
         // var friendList = new ObservableCollection<FriendModel>();
-        var response = client.GetUserFriends(new Request { Id = UserId });
+        var response = client.GetUserFriends(new Request
+        {
+            Id = UserId,
+            SessionId = this.SessionId
+        });
         try
         {
             await foreach (var friend in response.ResponseStream.ReadAllAsync())
@@ -303,7 +362,5 @@ public partial class MainView : BaseView
     }
     private void Starting(object? sender, EventArgs e)
     {
-        //Task.Run(async () => { await Subscribe(ChatClient, UserId); });
-        //Application.Current.Windows[0].Close();
     }
 }

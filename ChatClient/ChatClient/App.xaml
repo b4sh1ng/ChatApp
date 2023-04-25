@@ -6,7 +6,7 @@
     xmlns:viewmodels="clr-namespace:ChatClient.ViewModels"
     xmlns:viewmodelsFriends="clr-namespace:ChatClient.ViewModels.FriendsTabViewModels"
     xmlns:views="clr-namespace:ChatClient.Views"
-    StartupUri="LoginWindow.xaml">
+    Startup="Application_Startup">
     <Application.Resources>
         <ResourceDictionary>
             <!--  MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive!  -->

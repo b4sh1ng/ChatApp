@@ -22,6 +22,7 @@ namespace ChatClient.ViewModels
     {
         private int chatId;
         private int userId;
+        private string sessionId;
         public Chat.ChatClient Client { get; set; }
         [ObservableProperty]
         private string? chatName;
@@ -43,6 +44,7 @@ namespace ChatClient.ViewModels
                 ChatId = chatId,
                 FromId = userId,
                 Text = Message,
+                SessionId = sessionId,
             });
             Message = "";
         }
@@ -51,7 +53,7 @@ namespace ChatClient.ViewModels
         {
             SendCommand = new RelayCommand(Send);
         }
-        public ChatView(ChatModel? chatModel, Chat.ChatClient client, int userId)
+        public ChatView(ChatModel? chatModel, Chat.ChatClient client, int userId, string sessionId)
         {
             SendCommand = new RelayCommand(Send);
             if (chatModel is not null)
@@ -65,6 +67,7 @@ namespace ChatClient.ViewModels
                 this.userId = userId;
                 Client = client;
                 FriendStatus = chatModel.CurrentStatus;
+                this.sessionId = sessionId;
             }
         }
     }

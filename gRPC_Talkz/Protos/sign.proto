@@ -8,9 +8,10 @@ service Sign{
 	rpc LoginWithSession(SessionLogin) returns (IsValid);
 	rpc LoginWithUsername(LoginUser) returns (SuccessMessage);
 	rpc Register(RegisterData) returns (IsValid);
+	rpc Logout(SessionLogin) returns (Empty);
 }
 
-message Emptys {
+message Empty {
 
 }
 

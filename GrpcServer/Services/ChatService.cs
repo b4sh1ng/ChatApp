@@ -40,6 +40,8 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.Id && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return;
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
         subscribers.TryAdd(request.Id, responseStream);
 
@@ -53,13 +55,16 @@ public class ChatService : Chat.ChatBase
     }
     public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.Id && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return Task.FromResult(new Empty());
         subscribers.TryRemove(request.Id, out _);
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Unsubscribe Anfrage erhalten von: {request.Id}");
         return Task.FromResult(new Empty());
     }
     public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
     {
-        //logger.LogInformation($"[{DateTime.Now}] Nachricht für Chat {request.ChatId} mit Inhalt:\n\"{request.Text}\"");
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.FromId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return Task.FromResult(new Empty());
         var query = dbcontext.Chats
             .Where(c => c.ChatId == request.ChatId)
             .Select(c => c.UserId);
@@ -105,6 +110,8 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task<Empty> PostNewStatus(NewUserStatus request, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return new Empty();
         //change status from request, add message to buffer to send to all users he is befriended
         var statusRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
         if (statusRequest != null && statusRequest.LastStatus != request.UserStatus)
@@ -144,6 +151,8 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task<IsSuccess> PostFriendRequest(FriendRequestSearch request, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return new IsSuccess() { IsOk = false };
         int searchId;
         string[] searchUser = request.SearchTerm.Split('#');
         try
@@ -212,14 +221,14 @@ public class ChatService : Chat.ChatBase
 
         return new IsSuccess() { IsOk = true };
     }
-    public override async Task<UserDataResponse> GetUserData(Login request, ServerCallContext context)
+    public override async Task<UserDataResponse> GetUserData(Request request, ServerCallContext context)
     {
-        // Später Login Kontrolle + JWT Token hinzufügen
-        var userDataRequest = await dbcontext.Usercredentials.FirstOrDefaultAsync(x => x.Username == request.LoginMail);
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.Id && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return new UserDataResponse();
+        var userDataRequest = await dbcontext.Usercredentials.FirstOrDefaultAsync(x => x.UserId == request.Id && x.SessionId == request.SessionId);
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Daten gesendet: {userDataRequest?.Username}");
         var response = (new UserDataResponse
         {
-            MyUserid = userDataRequest!.UserId,
             MyUsername = userDataRequest.Username,
             MyUsernameId = userDataRequest.UsernameId,
             MyProfileImgB64 = userDataRequest.ProfileImgB64,
@@ -229,6 +238,8 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task GetUserChats(Request request, IServerStreamWriter<GetChatDataResponse> responseStream, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.Id && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return;
         var query = from chats in dbcontext.Chats
                     join userdata in dbcontext.Usercredentials
                     on chats.UserId equals userdata.UserId
@@ -242,7 +253,7 @@ public class ChatService : Chat.ChatBase
                         chats.IsListed,
                         B64Img = userdata.ProfileImgB64,
                         ChatName = userdata.Username,
-                        CurrentStatus = userdata.CurrentStatus,
+                        userdata.CurrentStatus,
                     };
 
         var result = await query.ToListAsync();
@@ -260,10 +271,12 @@ public class ChatService : Chat.ChatBase
             logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Information von ChatId {chats.ChatId} gesendet.");
         }
     }
-    public override async Task GetChatData(Request request, IServerStreamWriter<MessageToChat> responseStream, ServerCallContext context)
+    public override async Task GetChatData(ChatDataRequest request, IServerStreamWriter<MessageToChat> responseStream, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return;
         var query = from message in dbcontext.Messages
-                    where message.ChatId == request.Id
+                    where message.ChatId == request.ChatId
                     join user in dbcontext.Usercredentials
                     on message.FromId equals user.UserId
                     select new
@@ -295,6 +308,8 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task<NewChat> GetChatId(ChatRequest request, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return new NewChat();
         logger.LogInformation($"Anfrage von ClientID {request.UserId} erhalten");
         //Get current ChatId if exist
         var queryChatId = dbcontext.Chats
@@ -366,6 +381,9 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task GetUserFriends(Request request, IServerStreamWriter<GetFriendDataResponse> responseStream, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.Id && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return;
+
         var dbRequest = await dbcontext.Friendlists
             .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
             .ToListAsync();
@@ -395,6 +413,8 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task<Empty> FriendRequesting(FriendRequest request, ServerCallContext context)
     {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return new Empty();
         var friendRequest = await dbcontext.Friendlists.SingleOrDefaultAsync(x => x.UserId1 == request.UserId && x.UserId2 == request.FriendId);
         if (request.IsAccepted == true)
         {
@@ -410,7 +430,18 @@ public class ChatService : Chat.ChatBase
                 dbcontext.Friendlists.Remove(friendRequest);
             }
         }
-        dbcontext.SaveChanges();
+        await dbcontext.SaveChangesAsync();
         return new Empty();
+    }
+    public override async Task<IsSuccess> DeleteFriend(FriendRequest request, ServerCallContext context)
+    {
+        var sessionCheckRequest = dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        if (sessionCheckRequest.Result == null) return new IsSuccess() { IsOk = false };
+
+        var deleteRequest = await dbcontext.Friendlists
+            .SingleAsync(x => (x.UserId1 == request.UserId && x.UserId2 == request.FriendId) || (x.UserId1 == request.FriendId && x.UserId2 == request.UserId));
+        dbcontext.Friendlists.Remove(deleteRequest);
+        await dbcontext.SaveChangesAsync();
+        return new IsSuccess() { IsOk = true };
     }
 }

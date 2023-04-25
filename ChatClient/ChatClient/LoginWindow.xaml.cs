@@ -23,6 +23,7 @@ namespace ChatClient
         public LoginWindow()
         {
             InitializeComponent();
+
         }
     }
 }
