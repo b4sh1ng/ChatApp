@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using ChatClient.Enums;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,6 @@ namespace ChatClient.Models
         [ObservableProperty]
         private bool isFriend;
         [ObservableProperty]
-        private SolidColorBrush currentStatus;
+        private SolidColorBrush currentStatus = StatusEnumHandler.GetStatusColor((State)0);
     }
 }

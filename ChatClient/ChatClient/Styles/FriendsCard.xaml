@@ -56,7 +56,6 @@
                                 VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center"
-                                local2:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True"
                                 Command="{Binding DataContext.RemoveFriendCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
                                 CommandParameter="{Binding FriendId}"
                                 DockPanel.Dock="Right"

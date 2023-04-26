@@ -86,6 +86,7 @@ public class ChatService : Chat.ChatBase
                 });
             }
         }
+        dbcontext.Chats.Where(c => c.ChatId == request.ChatId).Single(c => c.UserId != request.FromId).IsListed = true;
         dbcontext.Messages.Add(new Message()
         {
             ChatId = request.ChatId,
@@ -181,8 +182,8 @@ public class ChatService : Chat.ChatBase
         await dbcontext.Friendlists.AddAsync(new Friendlist
         {
             IsFriend = false,
-            UserId1 = request.UserId,
-            UserId2 = searchRequest.UserId,
+            UserId1 = searchRequest.UserId,
+            UserId2 = request.UserId,
         });
         await dbcontext.SaveChangesAsync();
         if (requesterData == null) return new IsSuccess() { IsOk = false };
@@ -390,6 +391,24 @@ public class ChatService : Chat.ChatBase
             if (friendRequest != null)
             {
                 friendRequest.IsFriend = true;
+                var friendDataRequest = await dbcontext.Usercredentials.SingleAsync(x => x.UserId == request.UserId);
+                buffer.Post(new SubscriberResponse
+                {
+                    MessageType = 3,
+                    ToId = request.FriendId,
+                    NewRequest = new NewRequest()
+                    {
+                        RequestData = new GetFriendDataResponse()
+                        {
+                            FriendId = request.UserId,
+                            FriendUsername = friendDataRequest?.Username,
+                            FriendUserId = friendDataRequest.UserId,
+                            FriendImgB64 = friendDataRequest?.ProfileImgB64,
+                            CurrentStatus = friendDataRequest.CurrentStatus,
+                            IsFriend = true,
+                        }
+                    }
+                });
             }
         }
         else
@@ -409,6 +428,15 @@ public class ChatService : Chat.ChatBase
             .SingleAsync(x => (x.UserId1 == request.UserId && x.UserId2 == request.FriendId) || (x.UserId1 == request.FriendId && x.UserId2 == request.UserId));
         dbcontext.Friendlists.Remove(deleteRequest);
         await dbcontext.SaveChangesAsync();
+        buffer.Post(new SubscriberResponse()
+        {
+            MessageType = 5,
+            ToId = request.FriendId,
+            RemoveFriend = new RemoveFriend()
+            {
+                FriendId = request.UserId
+            }
+        });
         return new IsSuccess() { IsOk = true };
         // add buffer message to delete friend from both clients if connected
     }

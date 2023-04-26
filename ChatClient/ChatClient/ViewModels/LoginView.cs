@@ -4,11 +4,11 @@ using Grpc.Net.Client;
 using GrpcLogin;
 using System;
 using System.Configuration;
-using System.Windows;
-using System.Windows.Media;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace ChatClient.ViewModels;
 
