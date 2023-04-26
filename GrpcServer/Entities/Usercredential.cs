@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace GrpcServer.Entities;
+﻿namespace GrpcServer.Entities;
 
 public partial class Usercredential
 {
@@ -21,5 +18,4 @@ public partial class Usercredential
 
     public string Email { get; set; } = null!;
 
-    public string? SessionId { get; set; }
 }

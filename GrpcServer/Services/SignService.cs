@@ -27,23 +27,31 @@ public class SignService : Sign.SignBase
         {
             return new SuccessMessage() { IsOk = false };
         }
-        string sessionId = Guid.NewGuid().ToString();
-        dbRequest.SessionId = sessionId;
-
-        await dbcontext.SaveChangesAsync();
-        return new SuccessMessage()
+        else
         {
-            IsOk = true,
-            Session = sessionId,
-            UserId = dbRequest.UserId
-        };
+            string sessionId = Guid.NewGuid().ToString();
+            var createSession = dbcontext.Usersessions.Add(new Usersession
+            {
+                IsExpired = false,
+                SessionId = sessionId,
+                UserId = dbRequest.UserId
+            });
+            await dbcontext.SaveChangesAsync();
+
+            return new SuccessMessage()
+            {
+                IsOk = true,
+                Session = sessionId,
+                UserId = dbRequest.UserId
+            };
+        }
     }
     public override async Task<IsValid> LoginWithSession(SessionLogin request, ServerCallContext context)
     {
         var userId = request.UserId;
         var sessionId = request.SessionId;
-        var dbRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == userId && x.SessionId == sessionId);
-        if (dbRequest is null)
+        var dbRequest = await dbcontext.Usersessions.SingleOrDefaultAsync(x => x.UserId == userId && x.SessionId == sessionId);
+        if (dbRequest is null || dbRequest.IsExpired)
         {
             logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Sessionlogin von User {request.UserId} nicht erfolgreich!");
             return new IsValid() { IsOk = false };
@@ -53,9 +61,9 @@ public class SignService : Sign.SignBase
     }
     public override async Task<Empty> Logout(SessionLogin request, ServerCallContext context)
     {
-        var sessionCheckRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
+        var sessionCheckRequest = await dbcontext.Usersessions.SingleOrDefaultAsync(x => x.UserId == request.UserId && x.SessionId == request.SessionId);
         if (sessionCheckRequest == null) return new Empty();
-        sessionCheckRequest.SessionId = "";
+        sessionCheckRequest.IsExpired = true;
         await dbcontext.SaveChangesAsync();
         return new Empty();
     }

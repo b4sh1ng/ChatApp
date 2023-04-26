@@ -41,9 +41,7 @@
             <ColumnDefinition Width="240" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
-
         <ContentControl Grid.Column="1" Content="{Binding SelectedView}" />
-
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="50" />
@@ -81,64 +79,67 @@
                 Grid.Row="3"
                 Background="#121212"
                 Orientation="Horizontal">
-                <Button
-                    Height="50"
-                    Margin="10,0,0,0"
-                    local:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True"
-                    BorderThickness="0"
-                    Cursor="Hand"
-                    Style="{StaticResource UserButton}">
-                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                        <Ellipse
-                            Width="40"
-                            Height="40"
-                            Margin="5,0,0,0">
-                            <Ellipse.Fill>
-                                <ImageBrush ImageSource="{Binding UserImageSource, Converter={StaticResource Base64ImageConverter}}" />
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <Border
-                            Width="11"
-                            Height="11"
-                            Margin="-11,25.5,0,0"
-                            Background="#181818"
-                            CornerRadius="5" />
-                        <Border
-                            Width="10"
-                            Height="10"
-                            Margin="-10,25,0,0"
-                            Background="{Binding UserStatus}"
-                            CornerRadius="7" />
-                        <StackPanel>
-                            <Label
-                                Content="{Binding Username}"
-                                FontSize="14"
-                                FontWeight="Bold" />
-                            <Label
-                                Margin="0,-10,0,0"
-                                Content="{Binding UsernameId}"
-                                FontSize="12"
-                                Foreground="DarkGray" />
+                <Grid Width="200">
+                    <Button
+                        Height="50"
+                        Margin="10,0,0,0"
+                        HorizontalAlignment="Left"
+                        local:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Style="{StaticResource UserButton}">
+                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                            <Ellipse
+                                Width="40"
+                                Height="40"
+                                Margin="5,0,0,0">
+                                <Ellipse.Fill>
+                                    <ImageBrush ImageSource="{Binding UserImageSource, Converter={StaticResource Base64ImageConverter}}" />
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <Border
+                                Width="11"
+                                Height="11"
+                                Margin="-11,25.5,0,0"
+                                Background="#181818"
+                                CornerRadius="5" />
+                            <Border
+                                Width="10"
+                                Height="10"
+                                Margin="-10,25,0,0"
+                                Background="{Binding UserStatus}"
+                                CornerRadius="7" />
+                            <StackPanel>
+                                <Label
+                                    Content="{Binding Username}"
+                                    FontSize="14"
+                                    FontWeight="Bold" />
+                                <Label
+                                    Margin="0,-10,0,0"
+                                    Content="{Binding UsernameId}"
+                                    FontSize="12"
+                                    Foreground="DarkGray" />
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                    <Button.ContextMenu>
-                        <ContextMenu FlowDirection="LeftToRight" StaysOpen="true">
-                            <MenuItem
-                                Command="{Binding SetStatusCommand}"
-                                CommandParameter="online"
-                                Header="Online" />
-                            <MenuItem
-                                Command="{Binding SetStatusCommand}"
-                                CommandParameter="busy"
-                                Header="Busy" />
-                            <MenuItem
-                                Command="{Binding SetStatusCommand}"
-                                CommandParameter="invisible"
-                                Header="Invisible" />
-                        </ContextMenu>
-                    </Button.ContextMenu>
-                </Button>
-                <DockPanel Width="134" HorizontalAlignment="Right">
+                        <Button.ContextMenu>
+                            <ContextMenu FlowDirection="LeftToRight" StaysOpen="true">
+                                <MenuItem
+                                    Command="{Binding SetStatusCommand}"
+                                    CommandParameter="online"
+                                    Header="Online" />
+                                <MenuItem
+                                    Command="{Binding SetStatusCommand}"
+                                    CommandParameter="busy"
+                                    Header="Busy" />
+                                <MenuItem
+                                    Command="{Binding SetStatusCommand}"
+                                    CommandParameter="invisible"
+                                    Header="Invisible" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </Grid>
+                <DockPanel Margin="5,0,0,0" HorizontalAlignment="Right">
                     <Button
                         Width="30"
                         Height="30"

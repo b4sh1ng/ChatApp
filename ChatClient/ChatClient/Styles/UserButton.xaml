@@ -29,8 +29,7 @@
                         Background="{TemplateBinding Background}"
                         CornerRadius="4"
                         BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
-                        
+                        BorderThickness="{TemplateBinding BorderThickness}">                        
                         <StackPanel
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"

@@ -3,7 +3,6 @@
         <Setter Property="Foreground" Value="Gray" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Margin" Value="8" />
-
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -47,8 +46,6 @@
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
-
         </Setter>
     </Style>
-
 </ResourceDictionary>

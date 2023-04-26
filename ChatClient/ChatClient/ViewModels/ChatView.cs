@@ -20,22 +20,24 @@ namespace ChatClient.ViewModels
 {
     public partial class ChatView : BaseView
     {
-        private int chatId;
-        private int userId;
-        private string sessionId;
         public Chat.ChatClient Client { get; set; }
+        public ObservableCollection<MessageModel>? Messages { get; set; }
+        #region Observable Propertys
         [ObservableProperty]
         private string? chatName;
         [ObservableProperty]
         private SolidColorBrush friendStatus;
-
         [ObservableProperty]
         private string? messageTo;
-        public ObservableCollection<MessageModel>? Messages { get; set; }
         [ObservableProperty]
         private string? imageSource;
         [ObservableProperty]
         private string? message;
+        #endregion
+
+        private int chatId;
+        private int userId;
+        private string sessionId;
         public ICommand SendCommand { get; set; }
         private async void Send()
         {

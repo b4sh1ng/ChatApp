@@ -6,6 +6,9 @@ using System;
 using System.Configuration;
 using System.Windows;
 using System.Windows.Media;
+using System.Security.Cryptography;
+using System.Text;
+using System.Windows.Controls;
 
 namespace ChatClient.ViewModels;
 
@@ -23,18 +26,20 @@ public partial class LoginView : BaseView
     private string loginMessage;
     [ObservableProperty]
     private SolidColorBrush loginMessageColor = new(Colors.Transparent);
+
     [RelayCommand]
     private void Login(object o)
     {
-        var passwordbox = (o as System.Windows.Controls.PasswordBox);
-        var password = passwordbox?.Password;
-        passwordbox?.Clear();
-        SuccessMessage? loginTry;
-        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(LoginEmail))
+        var passwordbox = (o as PasswordBox);
+        if (string.IsNullOrEmpty(passwordbox?.Password) || string.IsNullOrEmpty(LoginEmail))
         {
             LoginMessage = "E-Mail and Password as to be filled in!";
             return;
         }
+        var password = Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(passwordbox?.Password)));
+        passwordbox?.Clear();
+        SuccessMessage? loginTry;
+        
         try
         {
             loginTry = SignClient.LoginWithUsername(new LoginUser
@@ -80,11 +85,17 @@ public partial class LoginView : BaseView
             SetSettings();
         }
     }
-
     public void SwitchView()
     {
         var window = new MainWindow();
         window.Show();
+    }
+    private void SetSettings()
+    {
+        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        config.AppSettings.Settings["userId"].Value = "";
+        config.AppSettings.Settings["sessionId"].Value = "";
+        config.Save(ConfigurationSaveMode.Full, true);
     }
     private void SetSettings(int userId, string sessionId)
     {
@@ -93,13 +104,6 @@ public partial class LoginView : BaseView
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
         config.AppSettings.Settings["userId"].Value = Convert.ToString(userId);
         config.AppSettings.Settings["sessionId"].Value = sessionId;
-        config.Save(ConfigurationSaveMode.Full, true);
-    }
-    private void SetSettings()
-    {
-        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-        config.AppSettings.Settings["userId"].Value = "";
-        config.AppSettings.Settings["sessionId"].Value = "";
         config.Save(ConfigurationSaveMode.Full, true);
     }
 }

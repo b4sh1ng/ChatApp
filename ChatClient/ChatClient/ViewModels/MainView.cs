@@ -31,7 +31,7 @@ public partial class MainView : BaseView
     public Chat.ChatClient ChatClient { get; } = new Chat.ChatClient(Channel);
     public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
     private TaskCompletionSource<bool>? taskCompletion;
-
+    #region Observable Propertys
     [ObservableProperty]
     private string? sessionId;
     [ObservableProperty]
@@ -47,8 +47,6 @@ public partial class MainView : BaseView
     [ObservableProperty]
     private static ChatModel? selectedChat;
     [ObservableProperty]
-    private string? message;
-    [ObservableProperty]
     private string? userImageSource;
     [ObservableProperty]
     private SolidColorBrush userStatus;
@@ -58,9 +56,14 @@ public partial class MainView : BaseView
     private string? searchAnswer;
     [ObservableProperty]
     private SolidColorBrush searchAnswerColor;
+    #endregion
+    partial void OnSelectedChatChanged(ChatModel? value)
+    {
+        FriendsIsSelected = false;
+        SelectedView = new ChatView(value, ChatClient, UserId, SessionId);
+    }
     public MainView()
     {
-        Application.Current.MainWindow.Loaded += Starting;
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
         if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
         {
@@ -77,11 +80,8 @@ public partial class MainView : BaseView
             await Subscribe(ChatClient, UserId);
         });
     }
-    partial void OnSelectedChatChanged(ChatModel? value)
-    {
-        FriendsIsSelected = false;
-        SelectedView = new ChatView(value, ChatClient, UserId, SessionId);
-    }
+
+    #region Commands
     [RelayCommand]
     private void ChangeView(string? parameter)
     {
@@ -212,6 +212,9 @@ public partial class MainView : BaseView
             SearchAnswerColor = new SolidColorBrush(Colors.Green);
         }
     }
+    #endregion
+
+    #region gRPC Server Communication
     private async Task Subscribe(Chat.ChatClient client, int chatId)
     {
         var sub = client.Subscribe(new Request
@@ -356,11 +359,10 @@ public partial class MainView : BaseView
         }
         //return friendList;
     }
+    #endregion
+
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
         Unsubscribe(ChatClient, UserId).Wait();
-    }
-    private void Starting(object? sender, EventArgs e)
-    {
     }
 }

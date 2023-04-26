@@ -44,6 +44,5 @@ namespace ChatClient.ViewModels
             "requests" => SelectedFriendsView = new RequestsFriendsView(FriendsList),
             _ => SelectedFriendsView = new OnlineFriendsView(FriendsList)
         };
-
     }
 }

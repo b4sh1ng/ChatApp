@@ -18,7 +18,7 @@
                 Content="{Binding FriendCount}"
                 FontSize="14"
                 FontWeight="Bold" />
-            <ListView ItemContainerStyle="{StaticResource FriendsCard}" ItemsSource="{Binding FriendList}"/>
+            <ListView ItemContainerStyle="{StaticResource FriendsCard}" ItemsSource="{Binding FriendList}" />
         </StackPanel>
     </Grid>
 </UserControl>

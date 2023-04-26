@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace GrpcServer.Entities;
+﻿namespace GrpcServer.Entities;
 
 public partial class Message
 {

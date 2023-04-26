@@ -72,7 +72,6 @@
                                     Kind="CheckSolid" />
                             </Button>
                         </DockPanel>
-                        <!--<Separator Margin="10,0,10,-15" Background="#424242" />-->
                     </Border>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsFriend}" Value="true">

@@ -18,8 +18,6 @@
     Background="#222222"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-
-
     <Window.DataContext>
         <self:LoginView />
     </Window.DataContext>
