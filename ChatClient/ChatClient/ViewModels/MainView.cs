@@ -8,13 +8,11 @@ using GrpcLogin;
 using GrpcServer;
 using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
@@ -25,8 +23,8 @@ public partial class MainView : BaseView
     public static ObservableCollection<FriendModel>? FriendList { get; set; } = new();
     public static ObservableCollection<ChatModel>? Chats { get; set; } = new();
     public static ICollectionView? ChatsCollectionView { get; set; }
-    //public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
-    private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
+
+    private static readonly GrpcChannel Channel = GrpcChannel.ForAddress(ConfigurationManager.AppSettings.Get("connectionString"));
     public Chat.ChatClient ChatClient { get; } = new Chat.ChatClient(Channel);
     public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
     private TaskCompletionSource<bool>? taskCompletion;

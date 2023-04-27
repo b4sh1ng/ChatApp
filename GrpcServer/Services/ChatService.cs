@@ -3,6 +3,7 @@ using GrpcServer.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
+using System.Windows;
 
 namespace GrpcServer.Services;
 
@@ -36,7 +37,7 @@ public class ChatService : Chat.ChatBase
     }
     public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
     {
-        if (IsSessionNotOk(request.Id, request.SessionId).Result) return;
+        if (IsSessionNotOk(request.Id, request.SessionId).Result) return;        
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
         subscribers.TryAdd(request.Id, responseStream);
         var setUserStatus = await dbcontext.Usercredentials.SingleAsync(x => x.UserId == request.Id);
@@ -68,10 +69,22 @@ public class ChatService : Chat.ChatBase
                 });
             }
         }
-        while (subscribers.ContainsKey(request.Id))
+        try
         {
-            await Task.Delay(1);
-            // runs for each client, SubSender handles buffer messages
+            while (subscribers.ContainsKey(request.Id))
+            {
+                await Task.Delay(1);
+                // runs for each client, SubSender handles buffer messages
+            }
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+        {
+            logger.LogWarning($"Verbindung zu Client {request.Id} verloren");
+            subscribers.TryRemove(request.Id, out _);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
         }
         subscribers.TryRemove(request.Id, out _);
         setUserStatus.CurrentStatus = 0;

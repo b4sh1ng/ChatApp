@@ -14,7 +14,7 @@ namespace ChatClient.ViewModels;
 
 public partial class LoginView : BaseView
 {
-    private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
+    private static readonly GrpcChannel Channel = GrpcChannel.ForAddress(ConfigurationManager.AppSettings.Get("connectionString"));
     public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
     [ObservableProperty]
     private string loginEmail;
