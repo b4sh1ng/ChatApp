@@ -25,7 +25,8 @@ public partial class MainView : BaseView
     public static ObservableCollection<FriendModel>? FriendList { get; set; } = new();
     public static ObservableCollection<ChatModel>? Chats { get; set; } = new();
     public static ICollectionView? ChatsCollectionView { get; set; }
-    public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
+    public static ICollectionView? FriendListCollectionView { get; set; }
+    //public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
     public Chat.ChatClient ChatClient { get; } = new Chat.ChatClient(Channel);
     public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
@@ -64,7 +65,7 @@ public partial class MainView : BaseView
     public MainView()
     {
         ChatsCollectionView = CollectionViewSource.GetDefaultView(Chats);
-        ChatsCollectionView.SortDescriptions.Add(new SortDescription(nameof(ChatModel.LatestMessageTime), ListSortDirection.Descending));        
+        ChatsCollectionView.SortDescriptions.Add(new SortDescription(nameof(ChatModel.LatestMessageTime), ListSortDirection.Descending));
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
         if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
         {
