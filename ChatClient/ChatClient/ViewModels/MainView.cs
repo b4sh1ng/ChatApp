@@ -8,11 +8,14 @@ using GrpcLogin;
 using GrpcServer;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace ChatClient.ViewModels;
@@ -21,6 +24,7 @@ public partial class MainView : BaseView
 {
     public static ObservableCollection<FriendModel>? FriendList { get; set; } = new();
     public static ObservableCollection<ChatModel>? Chats { get; set; } = new();
+    public static ICollectionView? ChatsCollectionView { get; set; }
     public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
     public Chat.ChatClient ChatClient { get; } = new Chat.ChatClient(Channel);
@@ -59,6 +63,8 @@ public partial class MainView : BaseView
     }
     public MainView()
     {
+        ChatsCollectionView = CollectionViewSource.GetDefaultView(Chats);
+        ChatsCollectionView.SortDescriptions.Add(new SortDescription(nameof(ChatModel.LatestMessageTime), ListSortDirection.Descending));        
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
         if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
         {
@@ -75,6 +81,7 @@ public partial class MainView : BaseView
             await Subscribe(ChatClient, UserId);
         });
     }
+
 
     #region Commands
     [RelayCommand]
@@ -283,6 +290,7 @@ public partial class MainView : BaseView
                     });
                 });
                 await GetChatDataFromChatId(client, chat.ChatId);
+                Application.Current.Dispatcher.Invoke(() => ChatsCollectionView.Refresh());
             }
         }
         catch (Exception ex)
@@ -324,7 +332,6 @@ public partial class MainView : BaseView
     }
     private async Task GetFriendListData(Chat.ChatClient client)
     {
-        // var friendList = new ObservableCollection<FriendModel>();
         var response = client.GetUserFriends(new Request
         {
             Id = UserId,
@@ -352,10 +359,8 @@ public partial class MainView : BaseView
         {
             MessageBox.Show($"{ex.Message}");
         }
-        //return friendList;
     }
     #endregion
-
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
         Unsubscribe(ChatClient, UserId).Wait();

@@ -60,8 +60,10 @@ public partial class MainView
                         Time = DateTimeOffset.FromUnixTimeSeconds(resp.Time).DateTime,
                     });
                 Chats.Single(x => x.ChatId == resp.ToChatId).IsChatListed = true;
+                ChatsCollectionView.Refresh();
             });
             // Update ChatViewCollection
+            
         }
         catch (Exception ex)
         {

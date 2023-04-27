@@ -19,13 +19,13 @@
     <Window.DataContext>
         <self:MainView />
     </Window.DataContext>
-    <Window.Resources>
+    <!--<Window.Resources>
         <CollectionViewSource x:Key="ChatsViewSource" Source="{Binding Chats}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription Direction="Descending" PropertyName="LatestMessageTime" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-    </Window.Resources>
+    </Window.Resources>-->
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands>
             <Button>
@@ -73,7 +73,7 @@
                 Background="#222222"
                 BorderThickness="0"
                 ItemContainerStyle="{StaticResource ChatCard}"
-                ItemsSource="{Binding Source={StaticResource ChatsViewSource}}"
+                ItemsSource="{Binding ChatsCollectionView}"
                 SelectedItem="{Binding SelectedChat}" />
             <StackPanel
                 Grid.Row="3"
