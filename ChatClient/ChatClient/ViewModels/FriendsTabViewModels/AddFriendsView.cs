@@ -10,11 +10,9 @@ namespace ChatClient.ViewModels.FriendsTabViewModels
 {
     class AddFriendsView : BaseView
     {
-        public ObservableCollection<FriendModel>? FriendList { get; set; }
-
         public AddFriendsView()
         {
-            
+
         }
     }
 }

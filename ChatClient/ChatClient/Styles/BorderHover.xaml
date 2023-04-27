@@ -2,7 +2,7 @@
     <Style x:Key="HoverEffect" TargetType="Border">
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#1f1f1f"/>
+                <Setter Property="Background" Value="#1f1f1f" />
             </Trigger>
         </Style.Triggers>
     </Style>

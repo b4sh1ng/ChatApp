@@ -33,13 +33,15 @@ public partial class MainView
                         IsChatListed = response.NewChat.ChatData!.IsListed,
                         Messages = new ObservableCollection<MessageModel>(),
                     });
+                    ChatsCollectionView.Refresh();
+                    taskCompletion?.SetResult(true);
                 });
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message);
         }
-        taskCompletion?.SetResult(true);
+        
         return true;
     }
     bool ProcessNewMessage(SubscriberResponse response)
@@ -62,8 +64,6 @@ public partial class MainView
                 Chats.Single(x => x.ChatId == resp.ToChatId).IsChatListed = true;
                 ChatsCollectionView.Refresh();
             });
-            // Update ChatViewCollection
-            
         }
         catch (Exception ex)
         {
@@ -74,15 +74,18 @@ public partial class MainView
 
     bool ProcessNewFriendRequest(SubscriberResponse response)
     {
-        FriendList.Add(new FriendModel()
+        Application.Current.Dispatcher.Invoke(() =>
         {
-            Username = response.NewRequest.RequestData.FriendUsername,
-            UsernameId = response.NewRequest.RequestData.FriendUserId,
-            FriendId = response.NewRequest.RequestData.FriendId,
-            ImageSource = response.NewRequest.RequestData.FriendImgB64,
-            IsFriend = response.NewRequest.RequestData.IsFriend,
+            FriendList.Add(new FriendModel()
+            {
+                Username = response.NewRequest.RequestData.FriendUsername,
+                UsernameId = response.NewRequest.RequestData.FriendUserId,
+                FriendId = response.NewRequest.RequestData.FriendId,
+                ImageSource = response.NewRequest.RequestData.FriendImgB64,
+                IsFriend = response.NewRequest.RequestData.IsFriend,
+            });
+            SharedData.FriendListCollection?.Refresh();
         });
-        // Update CollectionViewSource... HOW?!?!?      
         return true;
     }
     bool ProcessNewUserStatus(int userId, int userStatus)
@@ -102,7 +105,8 @@ public partial class MainView
 
                 var changeFriendListStatus = FriendList.Single(x => x.FriendId == userId);
                 changeFriendListStatus.CurrentStatus = StatusEnumHandler.GetStatusColor((State)userStatus);
-                // Update ViewCollection...
+                ChatsCollectionView.Refresh();
+                SharedData.FriendListCollection.Refresh();
             });
         }
         catch (Exception ex)
@@ -113,8 +117,12 @@ public partial class MainView
     }
     bool ProcessFriendRemoved(int friendId)
     {
-        var friendToRemove = FriendList.Single(x => x.FriendId == friendId);
-        FriendList.Remove(friendToRemove);
+        Application.Current.Dispatcher?.Invoke(() =>
+        {
+            var friendToRemove = FriendList.Single(x => x.FriendId == friendId);
+            FriendList.Remove(friendToRemove);
+            SharedData.FriendListCollection.Refresh();
+        });
         return true;
     }
 }

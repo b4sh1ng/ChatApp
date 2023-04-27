@@ -21,8 +21,7 @@
             <ListView
                 Margin="0"
                 ItemContainerStyle="{StaticResource FriendsRequestCard}"
-                ItemsSource="{Binding FriendList}" />
+                ItemsSource="{Binding FriendListCollection}" />
         </StackPanel>
-
     </Grid>
 </UserControl>

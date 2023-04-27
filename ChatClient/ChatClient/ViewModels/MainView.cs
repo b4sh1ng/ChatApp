@@ -25,7 +25,6 @@ public partial class MainView : BaseView
     public static ObservableCollection<FriendModel>? FriendList { get; set; } = new();
     public static ObservableCollection<ChatModel>? Chats { get; set; } = new();
     public static ICollectionView? ChatsCollectionView { get; set; }
-    public static ICollectionView? FriendListCollectionView { get; set; }
     //public static ObservableCollection<MessageModel>? Messages { get; set; } = new();
     private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
     public Chat.ChatClient ChatClient { get; } = new Chat.ChatClient(Channel);
@@ -64,6 +63,7 @@ public partial class MainView : BaseView
     }
     public MainView()
     {
+        SharedData.FriendListCollection = CollectionViewSource.GetDefaultView(FriendList);
         ChatsCollectionView = CollectionViewSource.GetDefaultView(Chats);
         ChatsCollectionView.SortDescriptions.Add(new SortDescription(nameof(ChatModel.LatestMessageTime), ListSortDirection.Descending));
         Application.Current.MainWindow.Closing += MainWindow_Closing!;
@@ -78,12 +78,10 @@ public partial class MainView : BaseView
         {
             await GetUserChats(ChatClient);
             await GetFriendListData(ChatClient);
-            SelectedView = new FriendsView(FriendList);
+            SelectedView = new FriendsView();
             await Subscribe(ChatClient, UserId);
         });
     }
-
-
     #region Commands
     [RelayCommand]
     private void ChangeView(string? parameter)
@@ -91,7 +89,7 @@ public partial class MainView : BaseView
         if (parameter == "friends")
         {
             SelectedChat = null;
-            SelectedView = new FriendsView(FriendList);
+            SelectedView = new FriendsView();
             FriendsIsSelected = true;
         }
     }
@@ -142,7 +140,7 @@ public partial class MainView : BaseView
             IsAccepted = false,
             SessionId = this.SessionId
         });
-        var toRemove = FriendList?.FirstOrDefault(f => f.FriendId == friendId);
+        var toRemove = FriendList?.Single(f => f.FriendId == friendId);
         if (toRemove != null)
         {
             FriendList?.Remove(toRemove);
@@ -161,6 +159,26 @@ public partial class MainView : BaseView
         if (deleteRequest.IsOk && toRemove != null)
         {
             FriendList?.Remove(toRemove);
+        }
+    }
+    [RelayCommand]
+    private void TryFriendRequest(string parameter)
+    {
+        var request = ChatClient.PostFriendRequest(new FriendRequestSearch
+        {
+            SearchTerm = parameter,
+            UserId = this.UserId,
+            SessionId = this.SessionId,
+        });
+        if (request.IsOk == false)
+        {
+            SearchAnswer = $"Following User \"{parameter}\" not found or is already a friend. :o";
+            SearchAnswerColor = new SolidColorBrush(Colors.IndianRed);
+        }
+        else
+        {
+            SearchAnswer = $"Sent to following User \"{parameter}\" a request! :)";
+            SearchAnswerColor = new SolidColorBrush(Colors.Green);
         }
     }
     [RelayCommand]
@@ -194,26 +212,6 @@ public partial class MainView : BaseView
         config.AppSettings.Settings["sessionId"].Value = "";
         config.Save(ConfigurationSaveMode.Full, true);
         Application.Current.Shutdown();
-    }
-    [RelayCommand]
-    private void TryFriendRequest(string parameter)
-    {
-        var request = ChatClient.PostFriendRequest(new FriendRequestSearch
-        {
-            SearchTerm = parameter,
-            UserId = this.UserId,
-            SessionId = this.SessionId,
-        });
-        if (request.IsOk == false)
-        {
-            SearchAnswer = $"Folgenden Nutzer \"{parameter}\" nicht gefunden oder ist schon ein Freund. :o";
-            SearchAnswerColor = new SolidColorBrush(Colors.IndianRed);
-        }
-        else
-        {
-            SearchAnswer = $"Folgenden Nutzer \"{parameter}\" Anfrage geschickt! :)";
-            SearchAnswerColor = new SolidColorBrush(Colors.Green);
-        }
     }
     #endregion
 

@@ -3,36 +3,43 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Data;
 
 namespace ChatClient.ViewModels.FriendsTabViewModels
 {
     partial class RequestsFriendsView : BaseView
     {
         public ObservableCollection<FriendModel>? FriendList { get; set; }
-        public ICollectionView FriendListCollectionView { get; set; }
-        [ObservableProperty]
-        private string friendCount;
-        public RequestsFriendsView() { }
-        public RequestsFriendsView(ObservableCollection<FriendModel> friendList)
+        public static ICollectionView FriendListCollection
         {
-            FriendList = new ObservableCollection<FriendModel>(friendList.Where(x => x.IsFriend == false).ToList());
-            FriendCount = $"Requests ~ {FriendList.Count}";
+            get { return SharedData.FriendListCollection!; }
         }
-        public RequestsFriendsView(ICollectionView friendList)
+        public RequestsFriendsView()
         {
-            FriendListCollectionView.Contains(friendList);
-            FriendListCollectionView.Filter = RequestingFriendsFilter;
+            try
+            {
+                FriendListCollection.Filter = RequestingFriendsFilter;
+                App.Current.Dispatcher.Invoke((() => { FriendListCollection.Refresh(); }));
+            }
+            catch (Exception ex)
+            {
+               // MessageBox.Show(ex.Message);
+            }
         }
-
         private bool RequestingFriendsFilter(object obj)
         {
-            if(obj is FriendModel friend)
+            if (obj is FriendModel friend)
             {
-                return friend.IsFriend.Equals(false);
+                if (!friend.IsFriend)
+                {
+                    return true;
+                }
             }
             return false;
         }

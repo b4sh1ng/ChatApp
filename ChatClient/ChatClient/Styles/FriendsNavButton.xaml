@@ -17,7 +17,7 @@
                 </MultiTrigger.Setters>
             </MultiTrigger>
             <DataTrigger Binding="{Binding FriendsIsSelected}" Value="True">
-                <Setter Property="Background" Value="#292b2f"/>
+                <Setter Property="Background" Value="#292b2f" />
             </DataTrigger>
         </Style.Triggers>
         <Setter Property="Cursor" Value="Hand" />

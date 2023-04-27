@@ -3,24 +3,14 @@ using ChatClient.ViewModels.FriendsTabViewModels;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows.Data;
 
 namespace ChatClient.ViewModels
 {
     public partial class FriendsView : BaseView
     {
         private ObservableCollection<FriendModel> FriendsList;
-        public FriendsView()
-        {
-            SelectedFriendsView = new OnlineFriendsView();
-            Selected = "online";
-        }
-        public FriendsView(ObservableCollection<FriendModel>? friendsList)
-        {
-            FriendsList = friendsList;
-            SelectedFriendsView = new OnlineFriendsView(FriendsList);
-            Selected = "online";
-        }
-
         [ObservableProperty]
         private BaseView? selectedFriendsView;
         [ObservableProperty]
@@ -31,13 +21,18 @@ namespace ChatClient.ViewModels
             SelectedFriendsView = ViewSelector(parameter);
             Selected = parameter;
         }
+        public FriendsView()
+        {
+            SelectedFriendsView = new OnlineFriendsView();
+            Selected = "online";
+        }
         private BaseView ViewSelector(string? parameter) => parameter switch
         {
-            "all" => SelectedFriendsView = new AllFriendsView(FriendsList),
+            "all" => SelectedFriendsView = new AllFriendsView(),
             "add" => SelectedFriendsView = new AddFriendsView(),
-            "online" => SelectedFriendsView = new OnlineFriendsView(FriendsList),
-            "requests" => SelectedFriendsView = new RequestsFriendsView(FriendsList),
-            _ => SelectedFriendsView = new OnlineFriendsView(FriendsList)
+            "online" => SelectedFriendsView = new OnlineFriendsView(),
+            "requests" => SelectedFriendsView = new RequestsFriendsView(),
+            _ => SelectedFriendsView = new OnlineFriendsView()
         };
     }
 }

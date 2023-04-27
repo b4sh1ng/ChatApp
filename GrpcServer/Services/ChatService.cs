@@ -39,12 +39,69 @@ public class ChatService : Chat.ChatBase
         if (IsSessionNotOk(request.Id, request.SessionId).Result) return;
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
         subscribers.TryAdd(request.Id, responseStream);
+        var setUserStatus = await dbcontext.Usercredentials.SingleAsync(x => x.UserId == request.Id);
+        setUserStatus.CurrentStatus = setUserStatus.LastStatus;
+        await dbcontext.SaveChangesAsync();
+        var dbRequest = await dbcontext.Friendlists
+            .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
+            .ToListAsync();
+        foreach (var friends in dbRequest)
+        {
+            int friendId;
+            if (friends.UserId1 == request.Id && friends.IsFriend == true)
+                friendId = friends.UserId2;
+            else if (friends.UserId2 == request.Id)
+                friendId = friends.UserId1;
+            else
+                continue;
+            if (subscribers.ContainsKey(friendId))
+            {
+                buffer.Post(new SubscriberResponse()
+                {
+                    MessageType = 4,
+                    ToId = friendId,
+                    NewUserStatus = new NewUserStatus()
+                    {
+                        UserId = request.Id,
+                        UserStatus = setUserStatus.CurrentStatus,
+                    }
+                });
+            }
+        }
         while (subscribers.ContainsKey(request.Id))
         {
             await Task.Delay(1);
             // runs for each client, SubSender handles buffer messages
         }
         subscribers.TryRemove(request.Id, out _);
+        setUserStatus.CurrentStatus = 0;
+        dbRequest = await dbcontext.Friendlists
+            .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
+            .ToListAsync();
+        foreach (var friends in dbRequest)
+        {
+            int friendId;
+            if (friends.UserId1 == request.Id && friends.IsFriend == true)
+                friendId = friends.UserId2;
+            else if (friends.UserId2 == request.Id)
+                friendId = friends.UserId1;
+            else
+                continue;
+            if (subscribers.ContainsKey(friendId))
+            {
+                buffer.Post(new SubscriberResponse()
+                {
+                    MessageType = 4,
+                    ToId = friendId,
+                    NewUserStatus = new NewUserStatus()
+                    {
+                        UserId = request.Id,
+                        UserStatus = 0,
+                    }
+                });
+            }
+        }
+        await dbcontext.SaveChangesAsync();
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Stream mit Id: {request.Id} beendet");
     }
     public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
@@ -157,11 +214,13 @@ public class ChatService : Chat.ChatBase
         {
             return new IsSuccess() { IsOk = false };
         }
+        //Looking for User with Username and his UsernameID => if not exist return false
         var searchRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.Username == searchUser[0] && x.UsernameId == searchId);
         if (searchRequest == null)
         {
             return new IsSuccess() { IsOk = false };
         }
+        // Getting all friends of the requester
         var getFriends = await dbcontext.Friendlists.Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId).ToListAsync();
         Usercredential? requesterData = null;
         foreach (var friend in getFriends)
@@ -175,18 +234,16 @@ public class ChatService : Chat.ChatBase
             {
                 return new IsSuccess() { IsOk = false };
             }
-            requesterData = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
-            if (requesterData == null) return new IsSuccess() { IsOk = false };
-            if (friendId == searchRequest.UserId) return new IsSuccess() { IsOk = false };
         }
+        requesterData = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
+        //if (requesterData == null) return new IsSuccess() { IsOk = false };
         await dbcontext.Friendlists.AddAsync(new Friendlist
         {
             IsFriend = false,
-            UserId1 = searchRequest.UserId,
-            UserId2 = request.UserId,
+            UserId1 = request.UserId,
+            UserId2 = searchRequest.UserId,
         });
         await dbcontext.SaveChangesAsync();
-        if (requesterData == null) return new IsSuccess() { IsOk = false };
         buffer.Post(new SubscriberResponse()
         {
             MessageType = 3,
@@ -296,7 +353,11 @@ public class ChatService : Chat.ChatBase
         //create new Chat&ChatId if no ChadId exist(if queryChatid is 0)
         if (queryChatId is 0)
         {
-            var maxChatId = dbcontext.Chats.Max(c => c.ChatId);
+            int maxChatId = 0;
+            if (dbcontext.Chats.Sum(x => x.ChatId) != 0)
+            {
+                maxChatId = dbcontext.Chats.Max(c => c.ChatId);
+            }
             int newChatId = maxChatId + 1;
             await dbcontext.Chats.AddAsync(new Entities.Chat
             {
@@ -327,7 +388,7 @@ public class ChatService : Chat.ChatBase
                     }
                 }
             });
-            // Send new ChatData to Friend but its not listed for him in his UI until Requester sent a Message
+            // Send new ChatData to Friend but its not listed for him in his UI until Requester sends a Message
             buffer.Post(new SubscriberResponse
             {
                 MessageType = 1,
@@ -385,7 +446,7 @@ public class ChatService : Chat.ChatBase
     public override async Task<Empty> FriendRequesting(FriendRequest request, ServerCallContext context)
     {
         if (IsSessionNotOk(request.UserId, request.SessionId).Result) return new Empty();
-        var friendRequest = await dbcontext.Friendlists.SingleOrDefaultAsync(x => x.UserId1 == request.UserId && x.UserId2 == request.FriendId);
+        var friendRequest = await dbcontext.Friendlists.SingleOrDefaultAsync(x => x.UserId1 == request.FriendId && x.UserId2 == request.UserId);
         if (request.IsAccepted == true)
         {
             if (friendRequest != null)

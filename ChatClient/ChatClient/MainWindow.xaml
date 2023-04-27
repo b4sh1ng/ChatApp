@@ -19,13 +19,6 @@
     <Window.DataContext>
         <self:MainView />
     </Window.DataContext>
-    <!--<Window.Resources>
-        <CollectionViewSource x:Key="ChatsViewSource" Source="{Binding Chats}">
-            <CollectionViewSource.SortDescriptions>
-                <scm:SortDescription Direction="Descending" PropertyName="LatestMessageTime" />
-            </CollectionViewSource.SortDescriptions>
-        </CollectionViewSource>
-    </Window.Resources>-->
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands>
             <Button>
