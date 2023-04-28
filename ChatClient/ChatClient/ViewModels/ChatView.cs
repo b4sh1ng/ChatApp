@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GrpcServer;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -31,6 +32,9 @@ namespace ChatClient.ViewModels
         public ICommand SendCommand { get; set; }
         private async void Send()
         {
+            if (string.IsNullOrWhiteSpace(Message))
+                return;
+
             await Client.PostMessageAsync(new Msg
             {
                 ChatId = chatId,

@@ -18,6 +18,7 @@
                                 BorderThickness="0"
                                 CaretBrush="Gray"
                                 Foreground="White"
+                                MaxLength="1024"
                                 Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextWrapping="Wrap">
                                 <TextBox.InputBindings>
