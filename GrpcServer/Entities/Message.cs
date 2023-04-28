@@ -1,4 +1,7 @@
-﻿namespace GrpcServer.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace GrpcServer.Entities;
 
 public partial class Message
 {
@@ -13,4 +16,6 @@ public partial class Message
     public bool? IsEdited { get; set; }
 
     public bool? IsRead { get; set; }
+
+    public int MessageId { get; set; }
 }

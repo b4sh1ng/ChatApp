@@ -1,4 +1,7 @@
-﻿namespace GrpcServer.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace GrpcServer.Entities;
 
 public partial class Usercredential
 {
@@ -17,5 +20,4 @@ public partial class Usercredential
     public int LastStatus { get; set; }
 
     public string Email { get; set; } = null!;
-
 }
