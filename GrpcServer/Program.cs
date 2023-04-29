@@ -3,6 +3,7 @@ using GrpcServer.Services;
 using GrpcLogin.Services;
 using Microsoft.EntityFrameworkCore;
 using MySql.EntityFrameworkCore.Extensions;
+using Grpc.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,6 +1,7 @@
 using Grpc.Core;
 using GrpcServer.Entities;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
 using System.Windows;
@@ -35,51 +36,107 @@ public class ChatService : Chat.ChatBase
             });
         }
     }
+    //public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
+    //{
+    //    logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subcount: {subscribers.Count()}");
+    //    if (IsSessionNotOk(request.Id, request.SessionId).Result) return;
+    //    logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
+    //    subscribers.TryAdd(request.Id, responseStream);
+    //    var setUserStatus = await dbcontext.Usercredentials.SingleAsync(x => x.UserId == request.Id);
+    //    setUserStatus.CurrentStatus = setUserStatus.LastStatus;
+    //    await dbcontext.SaveChangesAsync();
+    //    var dbRequest = await dbcontext.Friendlists
+    //        .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
+    //        .ToListAsync();
+    //    foreach (var friends in dbRequest)
+    //    {
+    //        int friendId;
+    //        if (friends.UserId1 == request.Id && friends.IsFriend == true)
+    //            friendId = friends.UserId2;
+    //        else if (friends.UserId2 == request.Id)
+    //            friendId = friends.UserId1;
+    //        else
+    //            continue;
+    //        if (subscribers.ContainsKey(friendId))
+    //        {
+    //            buffer.Post(new SubscriberResponse()
+    //            {
+    //                MessageType = 4,
+    //                ToId = friendId,
+    //                NewUserStatus = new NewUserStatus()
+    //                {
+    //                    UserId = request.Id,
+    //                    UserStatus = setUserStatus.CurrentStatus,
+    //                }
+    //            });
+    //        }
+    //    }
+    //    try
+    //    {
+    //        while (subscribers.ContainsKey(request.Id) || !context.CancellationToken.IsCancellationRequested)
+    //        {
+    //            await Task.Delay(1);
+    //            // runs for each client, SubSender handles buffer messages
+    //        }
+    //    }
+    //    catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+    //    {
+    //        logger.LogWarning($"Verbindung zu Client {request.Id} beendet.");
+    //        subscribers.TryRemove(request.Id, out _);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        logger.LogError(ex.Message);
+    //    }
+    //    subscribers.TryRemove(request.Id, out _);
+    //    setUserStatus.CurrentStatus = 0;
+    //    dbRequest = await dbcontext.Friendlists
+    //        .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
+    //        .ToListAsync();
+    //    foreach (var friends in dbRequest)
+    //    {
+    //        int friendId;
+    //        if (friends.UserId1 == request.Id && friends.IsFriend == true)
+    //            friendId = friends.UserId2;
+    //        else if (friends.UserId2 == request.Id)
+    //            friendId = friends.UserId1;
+    //        else
+    //            continue;
+    //        if (subscribers.ContainsKey(friendId))
+    //        {
+    //            buffer.Post(new SubscriberResponse()
+    //            {
+    //                MessageType = 4,
+    //                ToId = friendId,
+    //                NewUserStatus = new NewUserStatus()
+    //                {
+    //                    UserId = request.Id,
+    //                    UserStatus = 0,
+    //                }
+    //            });
+    //        }
+    //    }
+    //    await dbcontext.SaveChangesAsync();
+    //    logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Stream mit Id: {request.Id} beendet");
+    //}
     public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
     {
-        if (IsSessionNotOk(request.Id, request.SessionId).Result) return;        
+        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subcount: {subscribers.Count()}");
+        if (await IsSessionNotOk(request.Id, request.SessionId)) return;
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
         subscribers.TryAdd(request.Id, responseStream);
-        var setUserStatus = await dbcontext.Usercredentials.SingleAsync(x => x.UserId == request.Id);
-        setUserStatus.CurrentStatus = setUserStatus.LastStatus;
-        await dbcontext.SaveChangesAsync();
-        var dbRequest = await dbcontext.Friendlists
-            .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
-            .ToListAsync();
-        foreach (var friends in dbRequest)
-        {
-            int friendId;
-            if (friends.UserId1 == request.Id && friends.IsFriend == true)
-                friendId = friends.UserId2;
-            else if (friends.UserId2 == request.Id)
-                friendId = friends.UserId1;
-            else
-                continue;
-            if (subscribers.ContainsKey(friendId))
-            {
-                buffer.Post(new SubscriberResponse()
-                {
-                    MessageType = 4,
-                    ToId = friendId,
-                    NewUserStatus = new NewUserStatus()
-                    {
-                        UserId = request.Id,
-                        UserStatus = setUserStatus.CurrentStatus,
-                    }
-                });
-            }
-        }
+        await SetUserStatus(request.Id);
+        await SendUserStatusToFriends(request.Id);
         try
         {
-            while (subscribers.ContainsKey(request.Id))
+            while (subscribers.ContainsKey(request.Id) || !context.CancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(1);
-                // runs for each client, SubSender handles buffer messages
             }
         }
         catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
         {
-            logger.LogWarning($"Verbindung zu Client {request.Id} verloren");
+            logger.LogWarning($"Verbindung zu Client {request.Id} beendet.");
             subscribers.TryRemove(request.Id, out _);
         }
         catch (Exception ex)
@@ -87,34 +144,8 @@ public class ChatService : Chat.ChatBase
             logger.LogError(ex.Message);
         }
         subscribers.TryRemove(request.Id, out _);
-        setUserStatus.CurrentStatus = 0;
-        dbRequest = await dbcontext.Friendlists
-            .Where(x => x.UserId1 == request.Id || x.UserId2 == request.Id)
-            .ToListAsync();
-        foreach (var friends in dbRequest)
-        {
-            int friendId;
-            if (friends.UserId1 == request.Id && friends.IsFriend == true)
-                friendId = friends.UserId2;
-            else if (friends.UserId2 == request.Id)
-                friendId = friends.UserId1;
-            else
-                continue;
-            if (subscribers.ContainsKey(friendId))
-            {
-                buffer.Post(new SubscriberResponse()
-                {
-                    MessageType = 4,
-                    ToId = friendId,
-                    NewUserStatus = new NewUserStatus()
-                    {
-                        UserId = request.Id,
-                        UserStatus = 0,
-                    }
-                });
-            }
-        }
-        await dbcontext.SaveChangesAsync();
+        await SetUserStatusOffline(request.Id);
+        await SendUserStatusToFriends(request.Id);
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Stream mit Id: {request.Id} beendet");
     }
     public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
@@ -124,20 +155,62 @@ public class ChatService : Chat.ChatBase
         logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Unsubscribe Anfrage erhalten von: {request.Id}");
         return Task.FromResult(new Empty());
     }
-    public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
-    {
-        if (IsSessionNotOk(request.FromId, request.SessionId).Result) return Task.FromResult(new Empty());
-        var query = dbcontext.Chats
-            .Where(c => c.ChatId == request.ChatId)
-            .Select(c => c.UserId);
-        var userQuery = dbcontext.Usercredentials
-            .Single(x => x.UserId == request.FromId);
+    //public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
+    //{
+    //    if (IsSessionNotOk(request.FromId, request.SessionId).Result) return Task.FromResult(new Empty());
+    //    var query = dbcontext.Chats
+    //        .Where(c => c.ChatId == request.ChatId)
+    //        .Select(c => c.UserId);
+    //    var userQuery = dbcontext.Usercredentials
+    //        .Single(x => x.UserId == request.FromId);
 
-        foreach (var userId in query)
+    //    foreach (var userId in query)
+    //    {
+    //        if (subscribers.TryGetValue(userId, out var responseStream))
+    //        {
+    //            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachrich im Buffer hinzugefügt für ID {userId}");
+    //            buffer.Post(new SubscriberResponse()
+    //            {
+    //                MessageType = 2,
+    //                ToId = userId,
+    //                NewMessage = new NewMessage()
+    //                {
+    //                    //Server data
+    //                    ToChatId = request.ChatId,
+    //                    //User data
+    //                    Username = userQuery.Username,
+    //                    FromId = request.FromId,
+    //                    ImageSource = userQuery.ProfileImgB64,
+    //                    Text = request.Text,
+    //                    Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+    //                }
+    //            });
+    //        }
+    //    }
+    //    dbcontext.Chats.Where(c => c.ChatId == request.ChatId).Single(c => c.UserId != request.FromId).IsListed = true;
+    //    dbcontext.Messages.Add(new Message()
+    //    {
+    //        ChatId = request.ChatId,
+    //        Message1 = request.Text,
+    //        MessageTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
+    //        IsEdited = false,
+    //        IsRead = false,
+    //        FromId = request.FromId,
+    //    });
+    //    dbcontext.SaveChangesAsync().Wait();
+    //    return Task.FromResult(new Empty());
+    //}
+    public override async Task<Empty> PostMessage(Msg request, ServerCallContext context)
+    {
+        if (await IsSessionNotOk(request.FromId, request.SessionId)) return new Empty();
+        var userIds = dbcontext.Chats.Where(c => c.ChatId == request.ChatId).Select(c => c.UserId);
+        var user = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.FromId);
+
+        foreach (var userId in userIds)
         {
-            if (subscribers.TryGetValue(userId, out var responseStream))
+            if (subscribers.ContainsKey(userId))
             {
-                logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachrich im Buffer hinzugefügt für ID {userId}");
+                logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachricht im Buffer hinzugefügt für ID {userId}");
                 buffer.Post(new SubscriberResponse()
                 {
                     MessageType = 2,
@@ -147,9 +220,9 @@ public class ChatService : Chat.ChatBase
                         //Server data
                         ToChatId = request.ChatId,
                         //User data
-                        Username = userQuery.Username,
+                        Username = user.Username,
                         FromId = request.FromId,
-                        ImageSource = userQuery.ProfileImgB64,
+                        ImageSource = user.ProfileImgB64,
                         Text = request.Text,
                         Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
                     }
@@ -166,30 +239,69 @@ public class ChatService : Chat.ChatBase
             IsRead = false,
             FromId = request.FromId,
         });
-        dbcontext.SaveChangesAsync().Wait();
-        return Task.FromResult(new Empty());
+        await dbcontext.SaveChangesAsync();
+        return new Empty();
     }
+    //public override async Task<Empty> PostNewStatus(NewUserStatus request, ServerCallContext context)
+    //{
+    //    if (IsSessionNotOk(request.UserId, request.SessionId).Result) return new Empty();
+    //    //change status from request, add message to buffer to send to all users he is befriended
+    //    var statusRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
+    //    if (statusRequest != null && statusRequest.LastStatus != request.UserStatus)
+    //    {
+    //        statusRequest.LastStatus = request.UserStatus;
+    //        statusRequest.CurrentStatus = request.UserStatus;
+    //        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Ändere Status von User {request.UserId} zu Status: {request.UserStatus}");
+    //        await dbcontext.SaveChangesAsync();
+    //        var friendRequest = await dbcontext.Friendlists
+    //            .Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId)
+    //            .ToListAsync();
+    //        foreach (var friends in friendRequest)
+    //        {
+    //            int friendId;
+    //            if (friends.UserId1 == request.UserId)
+    //                friendId = friends.UserId2;
+    //            else
+    //                friendId = friends.UserId1;
+    //            if (subscribers.ContainsKey(friendId))
+    //            {
+    //                buffer.Post(new SubscriberResponse()
+    //                {
+    //                    MessageType = 4,
+    //                    ToId = friendId,
+    //                    NewUserStatus = new NewUserStatus()
+    //                    {
+    //                        UserId = request.UserId,
+    //                        UserStatus = statusRequest.CurrentStatus,
+    //                    }
+    //                });
+    //            }
+    //        }
+    //    }
+    //    return new Empty();
+    //}
     public override async Task<Empty> PostNewStatus(NewUserStatus request, ServerCallContext context)
     {
-        if (IsSessionNotOk(request.UserId, request.SessionId).Result) return new Empty();
-        //change status from request, add message to buffer to send to all users he is befriended
-        var statusRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
-        if (statusRequest != null && statusRequest.LastStatus != request.UserStatus)
+        if (await IsSessionNotOk(request.UserId, request.SessionId)) return new Empty();
+
+        var user = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
+
+        if (user?.LastStatus != request.UserStatus)
         {
-            statusRequest.LastStatus = request.UserStatus;
-            statusRequest.CurrentStatus = request.UserStatus;
+            user.LastStatus = request.UserStatus;
+            user.CurrentStatus = request.UserStatus;
+
             logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Ändere Status von User {request.UserId} zu Status: {request.UserStatus}");
+
             await dbcontext.SaveChangesAsync();
-            var friendRequest = await dbcontext.Friendlists
+
+            var friendIds = await dbcontext.Friendlists
                 .Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId)
+                .SelectMany(x => new[] { x.UserId1, x.UserId2 })
                 .ToListAsync();
-            foreach (var friends in friendRequest)
+
+            foreach (var friendId in friendIds)
             {
-                int friendId;
-                if (friends.UserId1 == request.UserId)
-                    friendId = friends.UserId2;
-                else
-                    friendId = friends.UserId1;
                 if (subscribers.ContainsKey(friendId))
                 {
                     buffer.Post(new SubscriberResponse()
@@ -199,7 +311,7 @@ public class ChatService : Chat.ChatBase
                         NewUserStatus = new NewUserStatus()
                         {
                             UserId = request.UserId,
-                            UserStatus = statusRequest.CurrentStatus,
+                            UserStatus = user.CurrentStatus,
                         }
                     });
                 }
@@ -520,5 +632,42 @@ public class ChatService : Chat.ChatBase
         if (sessionCheckRequest == null || sessionCheckRequest.IsExpired)
             return true;
         return false;
+    }
+    private async Task SetUserStatus(int id)
+    {
+        var setUserStatus = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == id);
+        setUserStatus.CurrentStatus = setUserStatus.LastStatus;
+        await dbcontext.SaveChangesAsync();
+    }
+    private async Task SetUserStatusOffline(int id)
+    {
+        var setUserStatus = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == id);
+        setUserStatus.CurrentStatus = 0;
+        await dbcontext.SaveChangesAsync();
+    }
+    private async Task SendUserStatusToFriends(int id)
+    {
+        var friendIds = await dbcontext.Friendlists
+            .Where(x => x.UserId1 == id || x.UserId2 == id)
+            .Where(x => x.IsFriend == true)
+            .Select(x => x.UserId1 == id ? x.UserId2 : x.UserId1)
+            .ToListAsync();
+
+        foreach (var friendId in friendIds)
+        {
+            if (subscribers.ContainsKey(friendId))
+            {
+                buffer.Post(new SubscriberResponse()
+                {
+                    MessageType = 4,
+                    ToId = friendId,
+                    NewUserStatus = new NewUserStatus()
+                    {
+                        UserId = id,
+                        UserStatus = dbcontext.Usercredentials.SingleOrDefault(x => x.UserId == id)?.CurrentStatus ?? 0,
+                    }
+                });
+            }
+        }
     }
 }

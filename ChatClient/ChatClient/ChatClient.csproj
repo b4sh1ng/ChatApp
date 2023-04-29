@@ -6,10 +6,16 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
 	  <CoreCompileDependsOn>$(CoreCompileDependsOn);Protobuf_Compile</CoreCompileDependsOn>
+	  <StartupObject></StartupObject>
+	  <ApplicationIcon>duck_icon_135676.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="SplashScreen\splash_screen.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="duck_icon_135676.ico" />
   </ItemGroup>
 
   <ItemGroup>

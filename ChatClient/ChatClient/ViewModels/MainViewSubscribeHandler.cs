@@ -61,8 +61,8 @@ public partial class MainView
                         Message = resp.Text,
                         Time = DateTimeOffset.FromUnixTimeSeconds(resp.Time).DateTime,
                     });
-                Chats.Single(x => x.ChatId == resp.ToChatId).IsChatListed = true;
-                ChatsCollectionView.Refresh();
+                Chats!.Single(x => x.ChatId == resp.ToChatId).IsChatListed = true;
+                ChatsCollectionView?.Refresh();                
             });
         }
         catch (Exception ex)

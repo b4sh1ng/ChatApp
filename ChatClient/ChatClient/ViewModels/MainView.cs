@@ -7,10 +7,13 @@ using Grpc.Net.Client;
 using GrpcLogin;
 using GrpcServer;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Configuration;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -24,7 +27,18 @@ public partial class MainView : BaseView
     public static ObservableCollection<ChatModel>? Chats { get; set; } = new();
     public static ICollectionView? ChatsCollectionView { get; set; }
 
-    private static readonly GrpcChannel Channel = GrpcChannel.ForAddress(ConfigurationManager.AppSettings.Get("connectionString"));
+    private CancellationTokenSource tokenSource;
+    private readonly static SocketsHttpHandler handler = new()
+    {
+        PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+        KeepAlivePingDelay = TimeSpan.FromSeconds(15),
+        KeepAlivePingTimeout = TimeSpan.FromSeconds(10),
+        EnableMultipleHttp2Connections = true,
+    };
+    private static readonly GrpcChannel Channel = GrpcChannel.ForAddress(ConfigurationManager.AppSettings.Get("connectionString"), new GrpcChannelOptions
+    {
+        HttpHandler = handler
+    });
     public Chat.ChatClient ChatClient { get; } = new Chat.ChatClient(Channel);
     public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
     private TaskCompletionSource<bool>? taskCompletion;
@@ -61,10 +75,12 @@ public partial class MainView : BaseView
     }
     public MainView()
     {
+        Application.Current.Windows
+            .OfType<MainWindow>()
+            .Single().Closing += MainWindow_Closing;
         SharedData.FriendListCollection = CollectionViewSource.GetDefaultView(FriendList);
         ChatsCollectionView = CollectionViewSource.GetDefaultView(Chats);
         ChatsCollectionView.SortDescriptions.Add(new SortDescription(nameof(ChatModel.LatestMessageTime), ListSortDirection.Descending));
-        Application.Current.MainWindow.Closing += MainWindow_Closing!;
         if (int.TryParse(ConfigurationManager.AppSettings.Get("userId"), out int id))
         {
             UserId = id;
@@ -198,8 +214,9 @@ public partial class MainView : BaseView
         UserStatus = StatusEnumHandler.GetStatusColor((State)status);
     }
     [RelayCommand]
-    private void Logout()
+    private async void Logout()
     {
+        await Unsubscribe(ChatClient, UserId);
         SignClient.Logout(new SessionLogin
         {
             SessionId = SessionId,
@@ -214,13 +231,15 @@ public partial class MainView : BaseView
     #endregion
 
     #region gRPC Server Communication
-    private async Task Subscribe(Chat.ChatClient client, int chatId)
+    private async Task Subscribe(Chat.ChatClient client, int userId)
     {
+        tokenSource = new CancellationTokenSource();
         var sub = client.Subscribe(new Request
         {
             Id = UserId,
             SessionId = this.SessionId
-        });
+        },
+        cancellationToken: tokenSource.Token);
 
         try
         {
@@ -229,14 +248,22 @@ public partial class MainView : BaseView
                 ProcessResponseMessage(response);
             }
         }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Unavailable)
+        {
+            MessageBox.Show($"Lost the Connection to the server...closing Application...\nStatusmessage: {ex.StatusCode}", "Connection lost");
+            App.Current.Dispatcher.Invoke(() => { Application.Current.Shutdown(); });                     
+        }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message);
+            //MessageBox.Show();
         }
-        await client.UnsubscribeAsync(new Request { Id = chatId });
+        
+        await client.UnsubscribeAsync(new Request { Id = userId });
     }
+
     private Task Unsubscribe(Chat.ChatClient client, int userId)
     {
+        tokenSource.Cancel();
         client.UnsubscribeAsync(new Request
         {
             Id = userId,

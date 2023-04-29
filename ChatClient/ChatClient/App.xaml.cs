@@ -51,7 +51,7 @@ namespace ChatClient
             {
                 SessionId = SessionId,
                 UserId = UserId,
-            });
+            }, deadline: DateTime.UtcNow.AddSeconds(5));
             if (loginTry.IsOk)
             {
                 var mainWindow = new MainWindow();

@@ -23,7 +23,7 @@ namespace ChatClient.Views
     {
         public ChatWindow()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
     }
 }

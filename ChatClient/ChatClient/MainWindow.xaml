@@ -61,7 +61,7 @@
                     Content="Chats"
                     FontWeight="Bold" />
             </StackPanel>
-            <ListView
+            <ListView                
                 Grid.Row="2"
                 Background="#222222"
                 BorderThickness="0"

@@ -46,7 +46,7 @@ public partial class LoginView : BaseView
             {
                 Email = LoginEmail,
                 PasswordHash = password,
-            });
+            }, deadline: DateTime.UtcNow.AddSeconds(5));
         }
         catch
         {
@@ -85,19 +85,19 @@ public partial class LoginView : BaseView
             SetSettings();
         }
     }
-    public void SwitchView()
+    public static void SwitchView()
     {
         var window = new MainWindow();
         window.Show();
     }
-    private void SetSettings()
+    private static void SetSettings()
     {
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
         config.AppSettings.Settings["userId"].Value = "";
         config.AppSettings.Settings["sessionId"].Value = "";
         config.Save(ConfigurationSaveMode.Full, true);
     }
-    private void SetSettings(int userId, string sessionId)
+    private static void SetSettings(int userId, string sessionId)
     {
         ConfigurationManager.AppSettings.Set("userId", Convert.ToString(userId));
         ConfigurationManager.AppSettings.Set("sessionId", sessionId);
