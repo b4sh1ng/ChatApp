@@ -1,10 +1,8 @@
 using Grpc.Core;
 using GrpcServer.Entities;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
-using System.Windows;
 
 namespace GrpcServer.Services;
 
@@ -119,42 +117,6 @@ public class ChatService : Chat.ChatBase
     //    await dbcontext.SaveChangesAsync();
     //    logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Stream mit Id: {request.Id} beendet");
     //}
-    public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
-    {
-        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subcount: {subscribers.Count()}");
-        if (await IsSessionNotOk(request.Id, request.SessionId)) return;
-        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
-        subscribers.TryAdd(request.Id, responseStream);
-        await SetUserStatus(request.Id);
-        await SendUserStatusToFriends(request.Id);
-        try
-        {
-            while (subscribers.ContainsKey(request.Id) || !context.CancellationToken.IsCancellationRequested)
-            {
-                await Task.Delay(1);
-            }
-        }
-        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-        {
-            logger.LogWarning($"Verbindung zu Client {request.Id} beendet.");
-            subscribers.TryRemove(request.Id, out _);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-        }
-        subscribers.TryRemove(request.Id, out _);
-        await SetUserStatusOffline(request.Id);
-        await SendUserStatusToFriends(request.Id);
-        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Stream mit Id: {request.Id} beendet");
-    }
-    public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
-    {
-        if (IsSessionNotOk(request.Id, request.SessionId).Result) return Task.FromResult(new Empty());
-        subscribers.TryRemove(request.Id, out _);
-        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Unsubscribe Anfrage erhalten von: {request.Id}");
-        return Task.FromResult(new Empty());
-    }
     //public override Task<Empty> PostMessage(Msg request, ServerCallContext context)
     //{
     //    if (IsSessionNotOk(request.FromId, request.SessionId).Result) return Task.FromResult(new Empty());
@@ -200,6 +162,80 @@ public class ChatService : Chat.ChatBase
     //    dbcontext.SaveChangesAsync().Wait();
     //    return Task.FromResult(new Empty());
     //}
+    //public override async Task<Empty> PostNewStatus(NewUserStatus request, ServerCallContext context)
+    //{
+    //    if (IsSessionNotOk(request.UserId, request.SessionId).Result) return new Empty();
+    //    //change status from request, add message to buffer to send to all users he is befriended
+    //    var statusRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
+    //    if (statusRequest != null && statusRequest.LastStatus != request.UserStatus)
+    //    {
+    //        statusRequest.LastStatus = request.UserStatus;
+    //        statusRequest.CurrentStatus = request.UserStatus;
+    //        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Ändere Status von User {request.UserId} zu Status: {request.UserStatus}");
+    //        await dbcontext.SaveChangesAsync();
+    //        var friendRequest = await dbcontext.Friendlists
+    //            .Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId)
+    //            .ToListAsync();
+    //        foreach (var friends in friendRequest)
+    //        {
+    //            int friendId;
+    //            if (friends.UserId1 == request.UserId)
+    //                friendId = friends.UserId2;
+    //            else
+    //                friendId = friends.UserId1;
+    //            if (subscribers.ContainsKey(friendId))
+    //            {
+    //                buffer.Post(new SubscriberResponse()
+    //                {
+    //                    MessageType = 4,
+    //                    ToId = friendId,
+    //                    NewUserStatus = new NewUserStatus()
+    //                    {
+    //                        UserId = request.UserId,
+    //                        UserStatus = statusRequest.CurrentStatus,
+    //                    }
+    //                });
+    //            }
+    //        }
+    //    }
+    //    return new Empty();
+    //}
+    public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
+    {
+        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subcount: {subscribers.Count()}");
+        if (await IsSessionNotOk(request.Id, request.SessionId)) return;
+        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Subscribe Anfrage erhalten von: {request.Id}");
+        subscribers.TryAdd(request.Id, responseStream);
+        await SetUserStatus(request.Id);
+        await SendUserStatusToFriends(request.Id);
+        try
+        {
+            while (subscribers.ContainsKey(request.Id) || !context.CancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(1);
+            }
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+        {
+            logger.LogWarning($"Verbindung zu Client {request.Id} beendet.");
+            subscribers.TryRemove(request.Id, out _);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+        }
+        subscribers.TryRemove(request.Id, out _);
+        await SetUserStatusOffline(request.Id);
+        await SendUserStatusToFriends(request.Id);
+        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Stream mit Id: {request.Id} beendet");
+    }
+    public override Task<Empty> Unsubscribe(Request request, ServerCallContext context)
+    {
+        if (IsSessionNotOk(request.Id, request.SessionId).Result) return Task.FromResult(new Empty());
+        subscribers.TryRemove(request.Id, out _);
+        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Unsubscribe Anfrage erhalten von: {request.Id}");
+        return Task.FromResult(new Empty());
+    }
     public override async Task<Empty> PostMessage(Msg request, ServerCallContext context)
     {
         if (await IsSessionNotOk(request.FromId, request.SessionId)) return new Empty();
@@ -242,44 +278,6 @@ public class ChatService : Chat.ChatBase
         await dbcontext.SaveChangesAsync();
         return new Empty();
     }
-    //public override async Task<Empty> PostNewStatus(NewUserStatus request, ServerCallContext context)
-    //{
-    //    if (IsSessionNotOk(request.UserId, request.SessionId).Result) return new Empty();
-    //    //change status from request, add message to buffer to send to all users he is befriended
-    //    var statusRequest = await dbcontext.Usercredentials.SingleOrDefaultAsync(x => x.UserId == request.UserId);
-    //    if (statusRequest != null && statusRequest.LastStatus != request.UserStatus)
-    //    {
-    //        statusRequest.LastStatus = request.UserStatus;
-    //        statusRequest.CurrentStatus = request.UserStatus;
-    //        logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Ändere Status von User {request.UserId} zu Status: {request.UserStatus}");
-    //        await dbcontext.SaveChangesAsync();
-    //        var friendRequest = await dbcontext.Friendlists
-    //            .Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId)
-    //            .ToListAsync();
-    //        foreach (var friends in friendRequest)
-    //        {
-    //            int friendId;
-    //            if (friends.UserId1 == request.UserId)
-    //                friendId = friends.UserId2;
-    //            else
-    //                friendId = friends.UserId1;
-    //            if (subscribers.ContainsKey(friendId))
-    //            {
-    //                buffer.Post(new SubscriberResponse()
-    //                {
-    //                    MessageType = 4,
-    //                    ToId = friendId,
-    //                    NewUserStatus = new NewUserStatus()
-    //                    {
-    //                        UserId = request.UserId,
-    //                        UserStatus = statusRequest.CurrentStatus,
-    //                    }
-    //                });
-    //            }
-    //        }
-    //    }
-    //    return new Empty();
-    //}
     public override async Task<Empty> PostNewStatus(NewUserStatus request, ServerCallContext context)
     {
         if (await IsSessionNotOk(request.UserId, request.SessionId)) return new Empty();

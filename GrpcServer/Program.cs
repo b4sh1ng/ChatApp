@@ -1,9 +1,7 @@
+using GrpcLogin.Services;
 using GrpcServer.Entities;
 using GrpcServer.Services;
-using GrpcLogin.Services;
 using Microsoft.EntityFrameworkCore;
-using MySql.EntityFrameworkCore.Extensions;
-using Grpc.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +21,5 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.MapGrpcService<ChatService>();
 app.MapGrpcService<SignService>();
-app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-
+//app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 app.Run();
