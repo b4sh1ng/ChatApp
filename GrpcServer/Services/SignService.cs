@@ -7,9 +7,9 @@ namespace GrpcLogin.Services;
 public class SignService : Sign.SignBase
 {
     private readonly ILogger<SignService> logger;
-    private readonly TalkzContext dbcontext;
+    private readonly ChatContext dbcontext;
 
-    public SignService(ILogger<SignService> logger, TalkzContext DBContext)
+    public SignService(ILogger<SignService> logger, ChatContext DBContext)
     {
         this.logger = logger;
         dbcontext = DBContext!;

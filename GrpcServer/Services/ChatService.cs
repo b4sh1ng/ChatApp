@@ -9,11 +9,11 @@ namespace GrpcServer.Services;
 public class ChatService : Chat.ChatBase
 {
     private readonly ILogger<ChatService> logger;
-    private readonly TalkzContext dbcontext;
+    private readonly ChatContext dbcontext;
     private static ConcurrentDictionary<int, IServerStreamWriter<SubscriberResponse>> subscribers = new();
     private static readonly BufferBlock<SubscriberResponse> buffer = new();
 
-    public ChatService(ILogger<ChatService> logger, TalkzContext DBContext)
+    public ChatService(ILogger<ChatService> logger, ChatContext DBContext)
     {
         this.logger = logger;
         dbcontext = DBContext!;

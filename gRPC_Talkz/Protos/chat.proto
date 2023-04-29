@@ -5,16 +5,16 @@ option csharp_namespace = "GrpcServer";
 package chat;
 
 service Chat {
-	rpc Subscribe(Request) returns (stream SubscriberResponse); // added
-	rpc Unsubscribe(Request) returns (Empty); // added
-	rpc GetUserData(Request) returns (UserDataResponse); // added
-	rpc GetUserFriends(Request) returns (stream GetFriendDataResponse); // added
-	rpc GetUserChats(Request) returns (stream GetChatDataResponse); // added
-	rpc GetChatData(ChatDataRequest) returns (stream MessageToChat); // added
-	rpc PostMessage(Msg) returns (Empty); // added
+	rpc Subscribe(Request) returns (stream SubscriberResponse);
+	rpc Unsubscribe(Request) returns (Empty); 
+	rpc GetUserData(Request) returns (UserDataResponse); 
+	rpc GetUserFriends(Request) returns (stream GetFriendDataResponse); 
+	rpc GetUserChats(Request) returns (stream GetChatDataResponse); 
+	rpc GetChatData(ChatDataRequest) returns (stream MessageToChat); 
+	rpc PostMessage(Msg) returns (Empty); 
 	rpc PostNewStatus(NewUserStatus) returns (Empty);
-	rpc GetChatId(ChatRequest) returns (NewChat); // added
-	rpc FriendRequesting(FriendRequest) returns (Empty); // added
+	rpc GetChatId(ChatRequest) returns (NewChat); 
+	rpc FriendRequesting(FriendRequest) returns (Empty);
 	rpc PostFriendRequest(FriendRequestSearch) returns (IsSuccess);
 	rpc DeleteFriend(FriendRequest) returns (IsSuccess);
 }
