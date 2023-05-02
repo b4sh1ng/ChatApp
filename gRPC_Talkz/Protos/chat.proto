@@ -75,7 +75,6 @@ message NewMessage {
 	string imageSource = 4;
 	string text = 5;
 	int64 time = 6;
-	string sessionId = 7;
 }
 
 message NewRequest {

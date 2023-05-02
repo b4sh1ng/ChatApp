@@ -33,7 +33,7 @@ public partial class LoginView : BaseView
         var passwordbox = (o as PasswordBox);
         if (string.IsNullOrEmpty(passwordbox?.Password) || string.IsNullOrEmpty(LoginEmail))
         {
-            LoginMessage = "E-Mail and Password as to be filled in!";
+            LoginMessage = "E-Mail and Password has to be filled in!";
             return;
         }
         var password = Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(passwordbox?.Password)));
@@ -42,7 +42,7 @@ public partial class LoginView : BaseView
         
         try
         {
-            loginTry = SignClient.LoginWithUsername(new LoginUser
+            loginTry = SignClient.LoginWithEmail(new LoginUser
             {
                 Email = LoginEmail,
                 PasswordHash = password,

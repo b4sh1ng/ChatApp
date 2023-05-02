@@ -31,7 +31,7 @@ public class ChatService : Chat.ChatBase
                     logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Daten senden an ID: {message.ToId}");
                     subscriber.Value.WriteAsync(message);
                 }
-            });
+            }); 
         }
     }
     //public override async Task Subscribe(Request request, IServerStreamWriter<SubscriberResponse> responseStream, ServerCallContext context)
@@ -508,6 +508,7 @@ public class ChatService : Chat.ChatBase
                         ChatImgB64 = await dbcontext.Usercredentials.Where(x => x.UserId == request.FriendId).Select(x => x.ProfileImgB64).SingleAsync(),
                         ChatName = await dbcontext.Usercredentials.Where(x => x.UserId == request.FriendId).Select(x => x.Username).SingleAsync(),
                         IsListed = true,
+                        CurrentStatus = await dbcontext.Usercredentials.Where(x => x.UserId == request.FriendId).Select(x => x.CurrentStatus).SingleAsync(),
                     }
                 }
             });

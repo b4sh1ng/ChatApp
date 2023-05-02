@@ -114,7 +114,7 @@ public partial class MainView : BaseView
         {
             UserId = UserId,
             FriendId = friendId,
-            SessionId = this.SessionId
+            SessionId = this.SessionId,
         });
         var chatId = response.ChatData.ChatId;
         var isChatInList = Chats?.Where(x => x.ChatId == chatId).Select(x => x.ChatId).SingleOrDefault();
@@ -250,13 +250,13 @@ public partial class MainView : BaseView
         catch (RpcException ex) when (ex.StatusCode == StatusCode.Unavailable)
         {
             MessageBox.Show($"Lost the Connection to the server...closing Application...\nStatusmessage: {ex.StatusCode}", "Connection lost");
-            App.Current.Dispatcher.Invoke(() => { Application.Current.Shutdown(); });                     
+            App.Current.Dispatcher.Invoke(() => { Application.Current.Shutdown(); });
         }
         catch (Exception ex)
         {
             //MessageBox.Show();
         }
-        
+
         await client.UnsubscribeAsync(new Request { Id = userId });
     }
 

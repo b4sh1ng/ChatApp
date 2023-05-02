@@ -1,42 +1,26 @@
 ﻿syntax = "proto3";
-
 option csharp_namespace = "GrpcLogin";
-
 package sign;
-
 service Sign{
 	rpc LoginWithSession(SessionLogin) returns (IsValid);
-	rpc LoginWithUsername(LoginUser) returns (SuccessMessage);
-	rpc Register(RegisterData) returns (IsValid);
+	rpc LoginWithEmail(LoginUser) returns (SuccessMessage);
 	rpc Logout(SessionLogin) returns (Empty);
 }
-
 message Empty {
-
 }
-
 message SessionLogin{
 	string sessionId = 1;
 	int32 userId = 2;
 }
-
 message LoginUser{
 	string email = 1;
 	string passwordHash = 2;
 }
-
 message IsValid{
 	bool isOk = 1;
 }
-
 message SuccessMessage{
 	bool isOk = 1;
 	string session = 2;
 	int32 userId =3;
-}
-
-message RegisterData{
-	string email = 1;
-	string passwordHash = 2;
-	string userName = 3;
 }

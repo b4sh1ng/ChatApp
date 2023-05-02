@@ -14,11 +14,7 @@ public class SignService : Sign.SignBase
         this.logger = logger;
         dbcontext = DBContext!;
     }
-    public override Task<IsValid> Register(RegisterData request, ServerCallContext context)
-    {
-        return base.Register(request, context);
-    }
-    public override async Task<SuccessMessage> LoginWithUsername(LoginUser request, ServerCallContext context)
+    public override async Task<SuccessMessage> LoginWithEmail(LoginUser request, ServerCallContext context)
     {
         var userEmail = request.Email;
         var userPasswordHash = request.PasswordHash;

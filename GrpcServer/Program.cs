@@ -4,7 +4,6 @@ using GrpcServer.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 builder.Services.AddGrpc();
 builder.Services.AddDbContext<ChatContext>(options =>

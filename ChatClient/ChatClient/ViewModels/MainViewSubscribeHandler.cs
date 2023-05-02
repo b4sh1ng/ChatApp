@@ -32,6 +32,7 @@ public partial class MainView
                         ImageSource = response.NewChat.ChatData?.ChatImgB64,
                         IsChatListed = response.NewChat.ChatData!.IsListed,
                         Messages = new ObservableCollection<MessageModel>(),
+                        CurrentStatus = StatusEnumHandler.GetStatusColor((State)response.NewChat.ChatData.CurrentStatus),
                     });
                     ChatsCollectionView.Refresh();
                     taskCompletion?.SetResult(true);
@@ -40,8 +41,7 @@ public partial class MainView
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message);
-        }
-        
+        }        
         return true;
     }
     bool ProcessNewMessage(SubscriberResponse response)

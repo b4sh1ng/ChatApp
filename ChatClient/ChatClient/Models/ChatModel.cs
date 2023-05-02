@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using ChatClient.Enums;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace ChatClient.Models
         public string? ImageSource { get; set; }
         public ObservableCollection<MessageModel>? Messages { get; set; }
         [ObservableProperty]
-        private SolidColorBrush currentStatus;
+        private SolidColorBrush currentStatus = StatusEnumHandler.GetStatusColor((State)0);
         [ObservableProperty]
         private bool isChatListed;
         [ObservableProperty]
