@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ChatClient.Views.FriendTabViews.AddFriendsWindow" BaseTypeListCollapsed="true">
+    <Position X="14.5" Y="3.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Views\FriendTabViews\AddFriendsWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.Views.FriendTabViews.AllFriendsWindow" BaseTypeListCollapsed="true">
+    <Position X="18.5" Y="4.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Views\FriendTabViews\AllFriendsWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.Views.FriendTabViews.OnlineFriendsWindow" BaseTypeListCollapsed="true">
+    <Position X="6.5" Y="4.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Views\FriendTabViews\OnlineFriendsWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.Views.FriendTabViews.RequestsFriendsWindow" BaseTypeListCollapsed="true">
+    <Position X="10.5" Y="4.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Views\FriendTabViews\RequestsFriendsWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.Views.ChatWindow" BaseTypeListCollapsed="true">
+    <Position X="16.5" Y="9.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Views\ChatWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.Views.FriendsWindow" BaseTypeListCollapsed="true">
+    <Position X="20.5" Y="4.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Views\FriendsWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.Models.ChatModel">
+    <Position X="16.5" Y="6.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQACAAAAAAAAEAAAAAAAAAAAAgAAAAARAAAAQ=</HashCode>
+      <FileName>Models\ChatModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.Models.ContextMenuLeftClickBehavior">
+    <Position X="10.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAEQAAAAAAAAAAEAAAAAAAAABEAAAAA=</HashCode>
+      <FileName>Models\ContextMenuLeftClickBehavior.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.Models.FriendModel">
+    <Position X="20.5" Y="6.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAAAAAAAAQEAAAAAAAABAgAAAAAAEAAAAAA=</HashCode>
+      <FileName>Models\FriendModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.Models.MessageModel">
+    <Position X="22.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAQEAEAAAABAAAAAAABAAIAAAAQA=</HashCode>
+      <FileName>Models\MessageModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.Models.SharedData">
+    <Position X="22.5" Y="7.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\SharedData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.Converter.ActualWidthConverter" BaseTypeListCollapsed="true">
+    <Position X="18.5" Y="6" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Converter\ActualWidthConverter.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.Converter.Base64ImageConverter" BaseTypeListCollapsed="true">
+    <Position X="20.5" Y="9" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Converter\Base64ImageConverter.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ChatClient.ViewModels.FriendsTabViewModels.AddFriendsView">
+    <Position X="14.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\FriendsTabViewModels\AddFriendsView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.FriendsTabViewModels.AllFriendsView">
+    <Position X="18.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>ViewModels\FriendsTabViewModels\AllFriendsView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.FriendsTabViewModels.OnlineFriendsView">
+    <Position X="6.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAABA=</HashCode>
+      <FileName>ViewModels\FriendsTabViewModels\OnlineFriendsView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.FriendsTabViewModels.RequestsFriendsView">
+    <Position X="10.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAABAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\FriendsTabViewModels\RequestsFriendsView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.BaseView" Collapsed="true">
+    <Position X="14.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\BaseView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.ChatView">
+    <Position X="16.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAIAAQAACEgAAAAAAAAAAAACCAAABQAAACQ=</HashCode>
+      <FileName>ViewModels\ChatView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.FriendsView">
+    <Position X="20.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAAACAEEAAAAAAAAAAAAAAAAAAAAAgAAAAA=</HashCode>
+      <FileName>ViewModels\FriendsView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.LoginView">
+    <Position X="8.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAgIAAAAAAECAgACACAAAAAAAAAABCQAAAAAAA=</HashCode>
+      <FileName>ViewModels\LoginView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.ViewModels.MainView">
+    <Position X="12.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAOAAJghAAAIAQAhGggIQkMERAkaABAOQAIIAEGAABQ=</HashCode>
+      <FileName>ViewModels\MainView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ChatClient.App">
+    <Position X="22.5" Y="4.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AACgCAAgAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>App.xaml.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

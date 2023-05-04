@@ -175,9 +175,9 @@ public partial class MainView : BaseView
         }
     }
     [RelayCommand]
-    private void TryFriendRequest(string parameter)
+    private async void TryFriendRequest(string parameter)
     {
-        var request = ChatClient.PostFriendRequest(new FriendRequestSearch
+        var request = await ChatClient.PostFriendRequestAsync(new FriendRequestSearch
         {
             SearchTerm = parameter,
             UserId = this.UserId,
