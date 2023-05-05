@@ -18,12 +18,11 @@ namespace ChatClient.ViewModels.FriendsTabViewModels
             try
             {
                 FriendListCollection.Filter = AllFriendsFilter;
-                //FriendListCollection.GroupDescriptions.Add(new PropertyGroupDescription(nameof(FriendModel.CurrentStatus)));
                 App.Current.Dispatcher.Invoke(() => { FriendListCollection.Refresh(); });
             }
             catch (Exception ex)
             {
-              //  MessageBox.Show(ex.Message);
+                //  MessageBox.Show(ex.Message);
             }
         }
         private bool AllFriendsFilter(object obj)
