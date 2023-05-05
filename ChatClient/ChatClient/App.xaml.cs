@@ -11,7 +11,7 @@ namespace ChatClient
     /// </summary>
     public partial class App : Application
     {
-        private static readonly GrpcChannel Channel = GrpcChannel.ForAddress("http://localhost:5292");
+        private static readonly GrpcChannel Channel = GrpcChannel.ForAddress(ConfigurationManager.AppSettings.Get("connectionString"));
         public Sign.SignClient SignClient { get; } = new Sign.SignClient(Channel);
         private void Application_Startup(object sender, StartupEventArgs e)
         {
