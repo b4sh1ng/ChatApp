@@ -81,7 +81,7 @@ public class ChatService : Chat.ChatBase
         {
             if (subscribers.ContainsKey(userId))
             {
-                logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachricht im Buffer hinzugefügt für ID {userId}");
+                logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Nachricht im Buffer hinzugefÃ¼gt fÃ¼r ID {userId}");
                 buffer.Post(new SubscriberResponse()
                 {
                     MessageType = 2,
@@ -124,31 +124,10 @@ public class ChatService : Chat.ChatBase
             user.LastStatus = request.UserStatus;
             user.CurrentStatus = request.UserStatus;
 
-            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Ändere Status von User {request.UserId} zu Status: {request.UserStatus}");
+            logger.LogInformation($"[{DateTime.Now:H:mm:ss:FFF}] Ã„ndere Status von User {request.UserId} zu Status: {request.UserStatus}");
 
             await dbcontext.SaveChangesAsync();
-
-            var friendIds = await dbcontext.Friendlists
-                .Where(x => x.UserId1 == request.UserId || x.UserId2 == request.UserId)
-                .SelectMany(x => new[] { x.UserId1, x.UserId2 })
-                .ToListAsync();
-
-            foreach (var friendId in friendIds)
-            {
-                if (subscribers.ContainsKey(friendId))
-                {
-                    buffer.Post(new SubscriberResponse()
-                    {
-                        MessageType = 4,
-                        ToId = friendId,
-                        NewUserStatus = new NewUserStatus()
-                        {
-                            UserId = request.UserId,
-                            UserStatus = user.CurrentStatus,
-                        }
-                    });
-                }
-            }
+            await SendUserStatusToFriends(request.UserId);
         }
         return new Empty();
     }
